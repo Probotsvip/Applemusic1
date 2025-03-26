@@ -19,10 +19,10 @@ MONGO_DB_URI = getenv("MONGO_DB_URI", None)
 DURATION_LIMIT_MIN = int(getenv("DURATION_LIMIT", 600))
 
 # Chat id of a group for logging bot's activities
-LOG_GROUP_ID = int(getenv("LOG_GROUP_ID", -1002468711939))
+LOG_GROUP_ID = int(getenv("LOG_GROUP_ID", -1002023049910))
 
 # Get this value from @MissRose_Bot on Telegram by /id
-OWNER_ID = int(getenv("OWNER_ID", None))
+OWNER_ID = int(getenv("OWNER_ID", 7168729089))
 
 ## Fill these variables if you're deploying on heroku.
 # Your heroku app name
@@ -32,15 +32,15 @@ HEROKU_API_KEY = getenv("HEROKU_API_KEY")
 
 UPSTREAM_REPO = getenv(
     "UPSTREAM_REPO",
-    "https://github.com/ruchi5134/Naincy1",
+    "https://github.com/JayKumar102030405060707090/Applemusic1",
 )
 UPSTREAM_BRANCH = getenv("UPSTREAM_BRANCH", "master")
 GIT_TOKEN = getenv(
     "GIT_TOKEN", None
 )  # Fill this variable if your upstream repository is private
 
-SUPPORT_CHANNEL = getenv("SUPPORT_CHANNEL", "https://t.me/Ruchi_MUSIC_UPDATE")
-SUPPORT_GROUP = getenv("SUPPORT_GROUP", "https://t.me/+YH5yOYUgjEo5ZDU1")
+SUPPORT_CHANNEL = getenv("SUPPORT_CHANNEL", "https://t.me/Apple_MUSIC_UPDATE")
+SUPPORT_GROUP = getenv("SUPPORT_GROUP", "https://t.me/APPLE_MUSIC_SUPPORT")
 
 # Set this to True if you want the assistant to automatically leave chats after an interval
 AUTO_LEAVING_ASSISTANT = bool(getenv("AUTO_LEAVING_ASSISTANT", False))
@@ -81,13 +81,13 @@ confirmer = {}
 
 
 START_IMG_URL = getenv(
-    "START_IMG_URL", "https://graph.org/file/b6a670e02de75fb987645-0e52cbe95051577f47.jpg"
+    "START_IMG_URL", "https://graph.org/file/4a876562dba6eda53c01c-c6aa48ccd3ee027bc6.jpg"
 )
 PING_IMG_URL = getenv(
-    "PING_IMG_URL", "https://graph.org/file/b6a670e02de75fb987645-0e52cbe95051577f47.jpg"
+    "PING_IMG_URL", "https://graph.org/file/4a876562dba6eda53c01c-c6aa48ccd3ee027bc6.jpg"
 )
 PLAYLIST_IMG_URL = "https://graph.org/file/b6a670e02de75fb987645-0e52cbe95051577f47.jpg"
-STATS_IMG_URL = "https://graph.org/file/b6a670e02de75fb987645-0e52cbe95051577f47.jpg"
+STATS_IMG_URL = "https://graph.org/file/4a876562dba6eda53c01c-c6aa48ccd3ee027bc6.jpg"
 TELEGRAM_AUDIO_URL = "https://graph.org//file/2f7debf856695e0ef0607.png"
 TELEGRAM_VIDEO_URL = "https://graph.org//file/2f7debf856695e0ef0607.png"
 STREAM_IMG_URL = "https://te.legra.ph/file/bd995b032b6bd263e2cc9.jpg"
