@@ -34,7 +34,7 @@ UPSTREAM_REPO = getenv(
     "UPSTREAM_REPO",
     "https://github.com/JayKumar102030405060707090/Applemusic1",
 )
-UPSTREAM_BRANCH = getenv("UPSTREAM_BRANCH", "master")
+UPSTREAM_BRANCH = getenv("UPSTREAM_BRANCH", "main")
 GIT_TOKEN = getenv(
     "GIT_TOKEN", "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"
 )  # Fill this variable if your upstream repository is private
