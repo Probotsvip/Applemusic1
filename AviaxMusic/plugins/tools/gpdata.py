@@ -4,7 +4,7 @@ from pyrogram import filters, Client
 from AviaxMusic import app
 from config import OWNER_ID
 from pyrogram.types import Message
-from SHUKLAMUSIC.utils.Shukla_ban import admin_filter
+from AviaxMysic.utils.Shukla_ban import admin_filter
 from pyrogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 
 
