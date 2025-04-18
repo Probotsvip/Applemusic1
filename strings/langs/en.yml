@@ -176,6 +176,8 @@ stream_2 : "➜ <b>𝖲𝗍𝖺𝗋𝗍𝖾𝖽 𝖲𝗍𝗋𝖾𝖺𝗆𝗂𝗇
 
 CLOSE_BUTTON  : "⌯ ᴄʟσsє ⌯"
 BACK_BUTTON : "⌯ ʙᴧᴄᴋ ⌯"
+BACK_PAGE : "<🕳️"
+NEXT_PAGE : "🕳️>"
 
 PL_B_1 : "𝐌ᴇɴᴜ 📥"
 S_B_1 : "⌯ ʌᴅᴅ ϻє вᴧʙʏ ⌯"
