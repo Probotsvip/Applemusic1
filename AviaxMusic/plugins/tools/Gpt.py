@@ -1,5 +1,5 @@
 import requests
-from AviaxMUSIC import app
+from AviaxMusic import app
 from pyrogram.types import Message
 from pyrogram.enums import ChatAction, ParseMode
 from pyrogram import filters
