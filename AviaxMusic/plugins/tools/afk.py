@@ -3,9 +3,9 @@ from config import BOT_USERNAME
 from pyrogram.enums import MessageEntityType
 from pyrogram import filters
 from pyrogram.types import Message
-from SHUKLAMUSIC import app
-from SHUKLAMUSIC.mongo.readable_time import get_readable_time
-from SHUKLAMUSIC.mongo.afkdb import add_afk, is_afk, remove_afk
+from AviaxMusic import app
+from AviaxMusic.mongo.readable_time import get_readable_time
+from AviaxMusic.mongo.afkdb import add_afk, is_afk, remove_afk
 
 
 
