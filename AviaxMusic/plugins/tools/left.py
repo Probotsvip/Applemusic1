@@ -1,4 +1,4 @@
-from SHUKLAMUSIC import app
+from AviaxMusic import app
 from pyrogram import Client, filters
 from pyrogram.errors import RPCError
 from pyrogram.types import ChatMemberUpdated, InlineKeyboardMarkup, InlineKeyboardButton
