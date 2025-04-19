@@ -1,9 +1,9 @@
-from SHUKLAMUSIC import app
+from AviaxMusic import app
 from config import OWNER_ID
 from pyrogram import filters, enums
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from SHUKLAMUSIC.utils.Shukla_ban import admin_filter
-from SHUKLAMUSIC.misc import SUDOERS
+from AviaxMusic.utils.Shukla_ban import admin_filter
+from AviaxMusic.misc import SUDOERS
 
 BOT_ID = app.me.id  # Corrected this line
 
