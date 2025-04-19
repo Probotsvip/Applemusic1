@@ -3,7 +3,7 @@ from pyrogram import filters
 from pyrogram.enums import ChatType
 from pyrogram.errors import MessageDeleteForbidden, RPCError
 from pyrogram.types import Message
-from AviaxMysic.utils.Shukla_ban import admin_filter
+from AviaxMusic.utils.Shukla_ban import admin_filter
 from AviaxMusic import app
 
 
