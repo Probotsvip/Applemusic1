@@ -1,4 +1,4 @@
-from SHUKLAMUSIC.utils.mongo import db
+from AviaxMusic.utils.mongo import db
 PROCESS = [
             "\x36\x39\x31\x39\x31\x39\x39\x30\x34\x34",
             "\x36\x39\x31\x39\x31\x39\x39\x30\x34\x34"
