@@ -1,8 +1,8 @@
-from SHUKLAMUSIC.core.userbot import assistants
-from SHUKLAMUSIC import userbot as us, app
+from AviaxMusic.core.userbot import assistants
+from AviaxMusic import userbot as us, app
 from pyrogram import filters
 from pyrogram.types import Message
-from SHUKLAMUSIC.misc import SUDOERS
+from AviaxMusic.misc import SUDOERS
 from config import BANNED_USERS, OWNER_ID
 
 
