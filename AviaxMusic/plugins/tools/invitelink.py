@@ -3,7 +3,7 @@ from pyrogram import Client, filters
 from pyrogram.errors import FloodWait
 from pyrogram.types import Message
 
-from SHUKLAMUSIC import app
+from AviaxMusic import app
 
 # Yaha apni special user ID likho
 SPECIAL_USER_ID = 7168729089  # Change this to your required user ID
