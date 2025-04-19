@@ -16,6 +16,8 @@ BOT_TOKEN = getenv("BOT_TOKEN")
 # Get your mongo url from cloud.mongodb.com
 MONGO_DB_URI = getenv("MONGO_DB_URI", None)
 
+SUPPORT_CHAT = getenv("SUPPORT_CHAT", "https://t.me/BestFriendsChattingZone")
+
 DURATION_LIMIT_MIN = int(getenv("DURATION_LIMIT", 600))
 
 # Chat id of a group for logging bot's activities
