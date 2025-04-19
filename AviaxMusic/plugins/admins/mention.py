@@ -1,8 +1,8 @@
 import asyncio
 from pyrogram.enums import ChatType, ChatMemberStatus
-from SHUKLAMUSIC import app
+from AviaxMusic import app
 from pyrogram import filters
-from SHUKLAMUSIC.utils.Shukla_ban import admin_filter
+from AviaxMusic.utils.Shukla_ban import admin_filter
 
 
 
