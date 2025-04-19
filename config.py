@@ -20,6 +20,8 @@ SUPPORT_CHAT = getenv("SUPPORT_CHAT", "https://t.me/BestFriendsChattingZone")
 
 DURATION_LIMIT_MIN = int(getenv("DURATION_LIMIT", 600))
 
+SONG_DOWNLOAD_DURATION=180
+
 # Chat id of a group for logging bot's activities
 LOG_GROUP_ID = int(getenv("LOG_GROUP_ID", -1002023049910))
 
