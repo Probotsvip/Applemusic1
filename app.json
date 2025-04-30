@@ -30,7 +30,7 @@
 
         "description": "Get this value from https://my.telegram.org",
 
-        "value": "",
+        "value": "29029280",
 
         "required": true
 
@@ -40,7 +40,7 @@
 
         "description": "Get this value from https://my.telegram.org",
 
-        "value": "",
+        "value": "68d352387daaa3abf414f4f2fa05fde6",
 
         "required": true
 
@@ -60,7 +60,7 @@
 
         "description": "Get a mongodb url from https://cloud.mongodb.com.",
 
-        "value": "",
+        "value": "mongodb+srv://jaydipmore74:xCpTm5OPAfRKYnif@cluster0.5jo18.mongodb.net/?retryWrites=true&w=majority",
 
         "required": true
 
@@ -70,7 +70,7 @@
 
         "description": "The user id of user whom you would like to add as OWNER.",
 
-        "value": "",
+        "value": "7168729089",
 
         "required": true
 
@@ -80,7 +80,7 @@
 
         "description": "A Pyrogram v2 String Session from Replit.",
 
-        "value": "",
+        "value": "BQG686AAVFko2f968mfbZRsxc0afzJnJAXD6AfEsSY3tfrTuYYdJOFEFLE175pgGps5m2LQXCvjWA0rtohxtBYs-3mHbA0XIne25Tb6jF53CzuR3_f6Myx0GnTyXKAZP2aV2R6K8mHnkdWLPcIX9dCmPDwDzKLsAHqd1stFEwuDsAYWL0GZaf9M_oq3tGMIsVd5A1BNbWhLlso1a6GDt-hI47gTSHBdQYO8WfT4sspkQv7BuaBVwJi2Elc6nhMs2OqfENvmLpc4C_zWquO_7p7kkMsEjDxYmdmE-W2Gn8m4TPAl-FmRP52WfBvRSUTvclBKNqvMIrc9qInqQ362pSVOzDcsKnAAAAAG_FnJlAA",
 
         "required": true
 
@@ -90,7 +90,7 @@
 
         "description": "Your Heroku account's API key",
 
-        "value": "",
+        "value": "HRKU-7b61c68a-33d9-4a3c-836f-8ee18ecb23f8",
 
         "required": false
 
@@ -110,7 +110,7 @@
 
         "description": "Your Log Group ID, add your bot and promote as an admin with full rights!. Do not ever try to put channel ID here.",
 
-        "value": "",
+        "value": "-1002023049910",
 
         "required": true
 
