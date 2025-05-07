@@ -12,74 +12,44 @@ from youtubesearchpython.__future__ import VideosSearch
 
 logging.basicConfig(level=logging.INFO)
 
-def create_thumbnail(thumbnail_url, title, uploader, duration, played, output_path): # Load thumbnail image from URL response = requests.get(thumbnail_url) thumb_image = Image.open(BytesIO(response.content)).convert("RGB")
+def generate_thumbnail(background_url, song_title, artist_name, duration, output_path="thumbnail.jpg"): # Fonts path (adjust if using custom fonts) FONT_BOLD = "arialbd.ttf" FONT_REGULAR = "arial.ttf"
 
-# Resize and blur background
-bg = thumb_image.resize((1280, 720)).filter(ImageFilter.GaussianBlur(radius=25))
+# Load background image and blur it
+response = requests.get(background_url)
+bg_image = Image.open(BytesIO(response.content)).convert("RGB")
+bg_image = bg_image.resize((1280, 720))
+blurred_bg = bg_image.filter(ImageFilter.GaussianBlur(radius=15))
 
-# Dark overlay
-overlay = Image.new('RGBA', bg.size, (0, 0, 0, 100))
-bg.paste(overlay, (0, 0), overlay)
+# Overlay a semi-transparent dark layer
+overlay = Image.new('RGBA', blurred_bg.size, (0, 0, 0, 120))
+blurred_bg = Image.alpha_composite(blurred_bg.convert("RGBA"), overlay)
 
-# Rounded thumbnail (small front image)
-thumb_small = thumb_image.resize((400, 400))
-mask = Image.new('L', (400, 400), 0)
-draw_mask = ImageDraw.Draw(mask)
-draw_mask.ellipse((0, 0, 400, 400), fill=255)
-thumb_small.putalpha(mask)
+# Draw elements
+draw = ImageDraw.Draw(blurred_bg)
 
-# Paste rounded image at center-left
-bg.paste(thumb_small, (80, 160), thumb_small)
+# Song Title
+title_font = ImageFont.truetype(FONT_BOLD, 60)
+draw.text((50, 50), song_title, font=title_font, fill=(255, 255, 255))
 
-draw = ImageDraw.Draw(bg)
+# Artist Name
+artist_font = ImageFont.truetype(FONT_REGULAR, 40)
+draw.text((50, 130), f"By: {artist_name}", font=artist_font, fill=(200, 200, 200))
 
-# Fonts (use your path to font or system font)
-title_font = ImageFont.truetype("arialbd.ttf", 60)
-info_font = ImageFont.truetype("arial.ttf", 40)
-small_font = ImageFont.truetype("arial.ttf", 35)
+# Duration (bottom right)
+duration_font = ImageFont.truetype(FONT_BOLD, 35)
+draw.text((1100, 650), duration, font=duration_font, fill=(255, 255, 255))
 
-# Text positions
-draw.text((520, 200), title, font=title_font, fill=(255, 255, 255))
-draw.text((520, 280), f"{uploader}", font=info_font, fill=(200, 200, 200))
+# Progress Bar (Static — Full)
+bar_x, bar_y, bar_width, bar_height = 50, 650, 1000, 15
+draw.rectangle([bar_x, bar_y, bar_x + bar_width, bar_y + bar_height], fill=(100, 100, 100))
+draw.rectangle([bar_x, bar_y, bar_x + bar_width, bar_y + bar_height], fill=(255, 0, 0))
 
-# Progress Bar background
-progress_x = 520
-progress_y = 400
-progress_width = 650
-progress_height = 15
+# Save final thumbnail
+blurred_bg.convert("RGB").save(output_path)
+print(f"Thumbnail saved as {output_path}")
 
-draw.rectangle([progress_x, progress_y, progress_x + progress_width, progress_y + progress_height], fill=(80,80,80))
+Example usage
 
-# Progress (played / duration)
-if duration != 0:
-    progress_percent = played / duration
-else:
-    progress_percent = 0
+generate_thumbnail( background_url="https://example.com/sample_background.jpg",  # Replace with image URL song_title="Sample Song", artist_name="Sample Artist", duration="03:45", output_path="thumbnail.jpg" )
 
-played_width = int(progress_width * progress_percent)
-
-draw.rectangle([progress_x, progress_y, progress_x + played_width, progress_y + progress_height], fill=(255, 0, 0))
-
-# Durations (current / total)
-def sec_to_min(sec):
-    mins = sec // 60
-    secs = sec % 60
-    return f"{int(mins)}:{int(secs):02}"
-
-played_txt = sec_to_min(played)
-duration_txt = sec_to_min(duration)
-
-draw.text((520, 430), f"{played_txt}", font=small_font, fill=(255,255,255))
-draw.text((1150, 430), f"{duration_txt}", font=small_font, fill=(255,255,255))
-
-# Optional icons (pause, YT, speaker)—static placeholders
-# (You can load PNG icons & paste like thumbnail if you want exact look)
-
-# Save final image
-bg.save(output_path)
-
-Example call:
-
-create_thumbnail(thumbnail_url, "Song Title", "Uploader Name", duration_seconds, played_seconds, "output.jpg")
-
-
+                   
