@@ -28,8 +28,8 @@ async def shell_cmd(cmd):
 
 
 async def get_stream_url(query, video=False):
-    api_url = "http://0.0.0.0:1470"
-    api_key = "your_secret_key_here"
+    api_url = "http://46.250.243.87:1470/youtube"
+    api_key = "1a873582a7c83342f961cc0a177b2b26"
     
     async with httpx.AsyncClient(timeout=60) as client:
         params = {"query": query, "video": video, "api_key": api_key}
