@@ -28,13 +28,18 @@ async def shell_cmd(cmd):
 
 
 async def get_stream_url(query, video=False):
-    api_url = "http://localhost:1470/youtube"
+    api_url = "http://localhost:1470/youtube"  # Or your VPS IP if not local
     api_key = "1a873582a7c83342f961cc0a177b2b26"
     
     async with httpx.AsyncClient(timeout=60) as client:
-        params = {"query": query, "video": video, "api_key": api_key}
+        params = {
+            "query": query,
+            "video": str(video).lower(),  # This line is VERY important
+            "api_key": api_key
+        }
         response = await client.get(api_url, params=params)
         if response.status_code != 200:
+            print("API Error:", response.status_code, response.text)
             return ""
         info = response.json()
         return info.get("stream_url")
