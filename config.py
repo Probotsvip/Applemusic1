@@ -27,6 +27,8 @@ BOT_USERNAME = getenv("BOT_USERNAME", None)  # replace with your actual bot user
 OWNER_ID = int(getenv("OWNER_ID", 7168729089))
 
 ## Fill these variables if you're deploying on heroku.
+API_URL = getenv("API_URL", 'https://api.thequickearn.xyz') #youtube song url
+API_KEY = getenv("API_KEY", None) # youtube song api key, get it from https://t.me/INNOCENCE_FUCKER
 # Your heroku app name
 HEROKU_APP_NAME = getenv("HEROKU_APP_NAME")
 # Get it from http://dashboard.heroku.com/account
