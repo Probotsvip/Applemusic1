@@ -1,0 +1,29 @@
+name: aviaxmusicbot
+
+services:
+  - name: telegrambot
+    dockerfile_path: ./Dockerfile
+    ports: []  # No exposed ports
+    healthchecks: []  # Disable health checks
+    env:
+      - key: API_ID
+        value: "21523624"
+      - key: API_HASH
+        value: "8402c26ac0129defa79626ae0ea1e256"
+      - key: BOT_TOKEN
+        value: "7124903570:AAGJF2i6T3J2DicC6lmOYTbnPig5rMBPJBs"
+      - key: BOT_USERNAME
+        value: "Meta_musicBot"
+      - key: LOG_GROUP_ID
+        value: "-1002023049910"
+      - key: MONGO_DB_URI
+        value: "mongodb+srv://jaydipmore74:xCpTm5OPAfRKYnif@cluster0.5jo18.mongodb.net/?retryWrites=true&w=majority"
+      - key: OWNER_ID
+        value: "7168729089"
+      - key: STRING_SESSION
+        value: "BQFIbKgARVWI-IGOfH-KSvutRx9o8Dg4rAVwuapsO7yc41ZJ8FsDcrHiKq27uVB_MBfWi6DgJLKZtVXAjt9_BoKk2gIUVo91nw6tmNFZKS9iszbBGoQtCXUjC3cDP8k6rD7qqxPMPP4_gj9cEnLvhHJcIS93lcIzWRDu2NGB0KbIWNwzkD37Iqn5_ObUPNNIpJ8ICpsMEIoZ6FSc101ulCOQRJkOoRq5ykXcq9-hau76SgOQj667acePVBQYOJQgQs656DHD1l5iILzOARYyr7et_pAQZVLtMBW9uJhHcQxX4TSydCtY2afr6Txzjm_dXchPPuEjorB3Pl8U1FpbYURGAT5_1wAAAAHDqEDiAA"
+      - key: GIT_TOKEN
+        value: "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"
+    instance_type: free
+    regions:
+      - fra
