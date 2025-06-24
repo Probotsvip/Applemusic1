@@ -22,7 +22,7 @@ import random
 import logging
 
 # Music Stream API Configuration
-MUSIC_API_BASE_URL = "http://localhost:5000"  # Change this to your deployed API URL
+MUSIC_API_BASE_URL = "https://ytapi-1fd43e42f22f.herokuapp.com/"  # Change this to your deployed API URL
 
 def cookie_txt_file():
     folder_path = f"{os.getcwd()}/cookies"
