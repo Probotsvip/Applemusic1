@@ -21,8 +21,6 @@ import glob
 import random
 import logging
 
-# Music Stream API Configuration
-#MUSIC_API_BASE_URL = "https://ytapi-1fd43e42f22f.herokuapp.com/"  # Change this to your deployed API URL
 
 def cookie_txt_file():
     folder_path = f"{os.getcwd()}/cookies"
@@ -36,8 +34,8 @@ def cookie_txt_file():
     return f"""cookies/{str(cookie_txt_file).split("/")[-1]}"""
 
 
-YOUR_API_KEY = "api_test_key_12345"  # Replace this with your real API key
-MUSIC_API_BASE_URL = "https://ytapi-1fd43e42f22f.herokuapp.com"  # Set this where appropriate
+YOUR_API_KEY = "api_861f95a5a0874f7ab9f7"
+MUSIC_API_BASE_URL = "https://ytapi-1fd43e42f22f.herokuapp.com"  
 
 async def get_audio_stream_from_api(query: str):
     """Get audio stream URL from our Music Stream API with API key"""
