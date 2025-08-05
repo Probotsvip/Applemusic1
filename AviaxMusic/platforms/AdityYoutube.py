@@ -27,23 +27,27 @@ async def shell_cmd(cmd):
 
 
 
-async def get_stream_url(query, video=False):
-    api_url = "https://ytapi-1fd43e42f22f.herokuapp.com/youtube"  # Or your VPS IP if not local
-    api_key = "jaydip"
-    
+
+async def get_stream_url(query: str) -> str:
+    api_url = "https://80e5559a-63f3-4b77-aaee-d460414c191a-00-2w3b8qvo0dl0f.worf.replit.dev/api/v1/audio"
+    api_key = "api_26c7ad3165a74e7a9c97652b"
+
+    # Make sure the query is a clean YouTube URL
+    if "youtube.com" not in query and "youtu.be" not in query:
+        query = f"https://www.youtube.com/watch?v={query}"
+
+    params = {
+        "url": query,
+        "api_key": api_key
+    }
+
     async with httpx.AsyncClient(timeout=60) as client:
-        params = {
-            "query": query,
-            "video": str(video).lower(),  # This line is VERY important
-            "api_key": api_key
-        }
         response = await client.get(api_url, params=params)
         if response.status_code != 200:
             print("API Error:", response.status_code, response.text)
             return ""
-        info = response.json()
-        return info.get("stream_url")
-
+        data = response.json()
+        return data.get("download_url")
 
 
 class YouTubeAPI:
