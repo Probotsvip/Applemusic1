@@ -27,28 +27,26 @@ async def shell_cmd(cmd):
 
 
 
-
-async def get_stream_url(query: str) -> str:
-    api_url = "https://80e5559a-63f3-4b77-aaee-d460414c191a-00-2w3b8qvo0dl0f.worf.replit.dev/api/v1/audio"
-    api_key = "api_26c7ad3165a74e7a9c97652b"
-
-    # Make sure the query is a clean YouTube URL
-    if "youtube.com" not in query and "youtu.be" not in query:
-        query = f"https://www.youtube.com/watch?v={query}"
-
-    params = {
-        "url": query,
-        "api_key": api_key
-    }
-
+async def get_stream_url(video_id: str) -> str:
+    api_url = "https://eeccdc04-72fe-4b91-8d10-038c3610a5b5-00-su0lm7bk3e0x.riker.replit.dev/api/song"
+    api_key = "345a5a_lC2QDOzUYe2rS3D2WyP0g"
+    
+    full_url = f"{api_url}/{video_id}?api={api_key}"
+    
     async with httpx.AsyncClient(timeout=60) as client:
-        response = await client.get(api_url, params=params)
+        response = await client.get(full_url)
+        
         if response.status_code != 200:
             print("API Error:", response.status_code, response.text)
             return ""
+        
         data = response.json()
-        return data.get("download_url")
-
+        
+        if data.get("status") != "done":
+            print("API did not return success:", data)
+            return ""
+        
+        return data.get("link")  # returns the direct mp3 URL
 
 class YouTubeAPI:
     def __init__(self):
