@@ -34,31 +34,34 @@ def cookie_txt_file():
     return f"""cookies/{str(cookie_txt_file).split("/")[-1]}"""
 
 
-YOUR_API_KEY = "api_861f95a5a0874f7ab9f7"
-MUSIC_API_BASE_URL = "https://ytapi-1fd43e42f22f.herokuapp.com"  
+#YO
+YOUR_API_KEY = "jaydip"  # Default API key in your project
+MUSIC_API_BASE_URL = "http://0.0.0.0:5000"  # Your current server URL
 
 async def get_audio_stream_from_api(query: str):
     """Get audio stream URL from our Music Stream API with API key"""
     try:
         async with aiohttp.ClientSession() as session:
             params = {
-                'query': query,
-                'api_key': YOUR_API_KEY
+                'url': query,  # ✅ Correct - Your API expects 'url' 
+                'key': YOUR_API_KEY  # ✅ Correct - Your API expects 'key'
             }
             async with session.get(
-                f"{MUSIC_API_BASE_URL}/stream",
+                f"{MUSIC_API_BASE_URL}/ytmp3",  # ✅ Correct - Use /ytmp3 for audio
                 params=params,
                 timeout=aiohttp.ClientTimeout(total=30)
             ) as response:
                 if response.status == 200:
                     data = await response.json()
-                    return data.get('stream_url'), data.get('title', query)
+                    # 🔧 FIX: Change 'stream_url' to 'url'
+                    return data.get('url'), data.get('title', query)  
                 else:
                     logging.error(f"Music API failed with status: {response.status}")
                     return None, None
     except Exception as e:
         logging.error(f"Error calling Music Stream API: {str(e)}")
         return None, None
+        #ee
 
 
 
