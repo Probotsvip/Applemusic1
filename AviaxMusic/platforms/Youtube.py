@@ -36,7 +36,7 @@ def cookie_txt_file():
 
 #YO
 YOUR_API_KEY = "jaydip"  # Default API key in your project
-MUSIC_API_BASE_URL = "http://0.0.0.0:5000"  # Your current server URL
+MUSIC_API_BASE_URL = "https://a1ab02cc-eda6-48fc-ac3a-d71efa6b524a-00-1f6g9o2obyr8v.spock.replit.dev/"  # Your current server URL
 
 async def get_audio_stream_from_api(query: str):
     """Get audio stream URL from our Music Stream API with API key"""
