@@ -1,106 +1,15 @@
+import asyncio, httpx, os, logging, re, yt_dlp
 
-import asyncio
-import os
-import re
-import json
-import aiohttp
 from typing import Union
-
-import yt_dlp
-from pyrogram.enums import MessageEntityType
 from pyrogram.types import Message
+from pyrogram.enums import MessageEntityType
 from youtubesearchpython.__future__ import VideosSearch
 
-from AviaxMusic.utils.database import is_on_off
-from AviaxMusic.utils.formatters import time_to_seconds
 
+def time_to_seconds(time):
+    stringt = str(time)
+    return sum(int(x) * 60**i for i, x in enumerate(reversed(stringt.split(":"))))
 
-
-import os
-import glob
-import random
-import logging
-
-
-def cookie_txt_file():
-    folder_path = f"{os.getcwd()}/cookies"
-    filename = f"{os.getcwd()}/cookies/logs.csv"
-    txt_files = glob.glob(os.path.join(folder_path, '*.txt'))
-    if not txt_files:
-        raise FileNotFoundError("No .txt files found in the specified folder.")
-    cookie_txt_file = random.choice(txt_files)
-    with open(filename, 'a') as file:
-        file.write(f'Choosen File : {cookie_txt_file}\n')
-    return f"""cookies/{str(cookie_txt_file).split("/")[-1]}"""
-
-
-#YO
-YOUR_API_KEY = "jaydip"  # Default API key in your project
-MUSIC_API_BASE_URL = "https://a1ab02cc-eda6-48fc-ac3a-d71efa6b524a-00-1f6g9o2obyr8v.spock.replit.dev/"  # Your current server URL
-
-async def get_audio_stream_from_api(query: str):
-    """Get audio stream URL from our Music Stream API with API key"""
-    try:
-        async with aiohttp.ClientSession() as session:
-            params = {
-                'url': query,  # ✅ Correct - Your API expects 'url' 
-                'key': YOUR_API_KEY  # ✅ Correct - Your API expects 'key'
-            }
-            async with session.get(
-                f"{MUSIC_API_BASE_URL}/ytmp3",  # ✅ Correct - Use /ytmp3 for audio
-                params=params,
-                timeout=aiohttp.ClientTimeout(total=30)
-            ) as response:
-                if response.status == 200:
-                    data = await response.json()
-                    # 🔧 FIX: Change 'stream_url' to 'url'
-                    return data.get('url'), data.get('title', query)  
-                else:
-                    logging.error(f"Music API failed with status: {response.status}")
-                    return None, None
-    except Exception as e:
-        logging.error(f"Error calling Music Stream API: {str(e)}")
-        return None, None
-        #ee
-
-
-
-
-
-async def check_file_size(link):
-    async def get_format_info(link):
-        proc = await asyncio.create_subprocess_exec(
-            "yt-dlp",
-            "--cookies", cookie_txt_file(),
-            "-J",
-            link,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE
-        )
-        stdout, stderr = await proc.communicate()
-        if proc.returncode != 0:
-            print(f'Error:\n{stderr.decode()}')
-            return None
-        return json.loads(stdout.decode())
-
-    def parse_size(formats):
-        total_size = 0
-        for format in formats:
-            if 'filesize' in format:
-                total_size += format['filesize']
-        return total_size
-
-    info = await get_format_info(link)
-    if info is None:
-        return None
-    
-    formats = info.get('formats', [])
-    if not formats:
-        print("No formats found.")
-        return None
-    
-    total_size = parse_size(formats)
-    return total_size
 
 async def shell_cmd(cmd):
     proc = await asyncio.create_subprocess_shell(
@@ -115,6 +24,62 @@ async def shell_cmd(cmd):
         else:
             return errorz.decode("utf-8")
     return out.decode("utf-8")
+
+
+# ---------------- Logger setup ----------------
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='[%(levelname)s] %(asctime)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+# ---------------- API config ----------------
+API_URL = "https://overr-06951cbefd63.herokuapp.com/ytmp3"
+API_KEY = "jaydip"
+
+async def get_stream_url(video_id_or_url: str):
+    """
+    video_id_or_url: Video ID (ea9er2bUQww) ya full YouTube URL
+    Returns: direct MP3 link or empty string on failure
+    """
+    # Agar input URL hai ya ID
+    if video_id_or_url.startswith("http://") or video_id_or_url.startswith("https://"):
+        youtube_url = video_id_or_url
+        logger.debug(f"Full YouTube URL received: {youtube_url}")
+    else:
+        youtube_url = f"https://youtu.be/{video_id_or_url}"
+        logger.debug(f"Video ID received, YouTube URL created: {youtube_url}")
+
+    try:
+        async with httpx.AsyncClient(timeout=60) as client:
+            params = {"url": youtube_url, "key": API_KEY}
+            logger.debug(f"Sending API request with params: {params}")
+
+            response = await client.get(API_URL, params=params)
+            logger.debug(f"API response received with status code: {response.status_code}")
+
+            if response.status_code != 200:
+                logger.error(f"Bad response from API: {response.status_code}")
+                return ""
+
+            info = response.json()
+            logger.debug(f"API JSON response: {info}")
+
+            if not info.get("status"):
+                logger.error("API returned status=False")
+                return ""
+
+            stream_url = info.get("url")
+            logger.info(f"Stream URL extracted: {stream_url}")
+            return stream_url
+
+    except httpx.RequestError as e:
+        logger.error(f"Request failed: {e}")
+        return ""
+    except Exception as e:
+        logger.error(f"Unexpected error: {e}")
+        return ""
+
 
 
 class YouTubeAPI:
@@ -209,21 +174,9 @@ class YouTubeAPI:
             link = self.base + link
         if "&" in link:
             link = link.split("&")[0]
-        proc = await asyncio.create_subprocess_exec(
-            "yt-dlp",
-            "--cookies",cookie_txt_file(),
-            "-g",
-            "-f",
-            "best[height<=?720][width<=?1280]",
-            f"{link}",
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-        )
-        stdout, stderr = await proc.communicate()
-        if stdout:
-            return 1, stdout.decode().split("\n")[0]
-        else:
-            return 0, stderr.decode()
+            
+        return await get_stream_url(link, True)
+        
 
     async def playlist(self, link, limit, user_id, videoid: Union[bool, str] = None):
         if videoid:
@@ -231,7 +184,7 @@ class YouTubeAPI:
         if "&" in link:
             link = link.split("&")[0]
         playlist = await shell_cmd(
-            f"yt-dlp -i --get-id --flat-playlist --cookies {cookie_txt_file()} --playlist-end {limit} --skip-download {link}"
+            f"yt-dlp -i --get-id --flat-playlist --playlist-end {limit} --skip-download {link}"
         )
         try:
             result = playlist.split("\n")
@@ -268,7 +221,7 @@ class YouTubeAPI:
             link = self.base + link
         if "&" in link:
             link = link.split("&")[0]
-        ytdl_opts = {"quiet": True, "cookiefile" : cookie_txt_file()}
+        ytdl_opts = {"quiet": True}
         ydl = yt_dlp.YoutubeDL(ytdl_opts)
         with ydl:
             formats_available = []
@@ -330,37 +283,8 @@ class YouTubeAPI:
     ) -> str:
         if videoid:
             link = self.base + link
-        
-        # For audio requests, use our Music Stream API
-        if not video and not songvideo:
-            try:
-                # Get title for API search
-                search_title = title
-                if not search_title:
-                    # Extract title from YouTube if not provided
-                    results = VideosSearch(link, limit=1)
-                    for result in (await results.next())["result"]:
-                        search_title = result["title"]
-                        break
-                
-                if search_title:
-                    logging.info(f"Searching Music API for: {search_title}")
-                    
-                    # Get stream URL from our API
-                    stream_url, api_title = await get_audio_stream_from_api(search_title)
-                    
-                    if stream_url:
-                        logging.info(f"Got audio stream from Music API: {api_title}")
-                        # Return the stream URL directly (no download needed)
-                        return stream_url, False  # False means direct streaming
-                    else:
-                        logging.warning("Music API failed, falling back to yt-dlp")
-                
-            except Exception as e:
-                logging.error(f"Music API error, falling back to yt-dlp: {str(e)}")
-        
-        # Fallback to original yt-dlp logic for video or if API fails
         loop = asyncio.get_running_loop()
+
         def audio_dl():
             ydl_optssx = {
                 "format": "bestaudio/best",
@@ -368,7 +292,6 @@ class YouTubeAPI:
                 "geo_bypass": True,
                 "nocheckcertificate": True,
                 "quiet": True,
-                "cookiefile" : cookie_txt_file(),
                 "no_warnings": True,
             }
             x = yt_dlp.YoutubeDL(ydl_optssx)
@@ -386,7 +309,6 @@ class YouTubeAPI:
                 "geo_bypass": True,
                 "nocheckcertificate": True,
                 "quiet": True,
-                "cookiefile" : cookie_txt_file(),
                 "no_warnings": True,
             }
             x = yt_dlp.YoutubeDL(ydl_optssx)
@@ -407,7 +329,6 @@ class YouTubeAPI:
                 "nocheckcertificate": True,
                 "quiet": True,
                 "no_warnings": True,
-                "cookiefile" : cookie_txt_file(),
                 "prefer_ffmpeg": True,
                 "merge_output_format": "mp4",
             }
@@ -423,7 +344,6 @@ class YouTubeAPI:
                 "nocheckcertificate": True,
                 "quiet": True,
                 "no_warnings": True,
-                "cookiefile" : cookie_txt_file(),
                 "prefer_ffmpeg": True,
                 "postprocessors": [
                     {
@@ -445,36 +365,9 @@ class YouTubeAPI:
             fpath = f"downloads/{title}.mp3"
             return fpath
         elif video:
-            if await is_on_off(1):
-                direct = True
-                downloaded_file = await loop.run_in_executor(None, video_dl)
-            else:
-                proc = await asyncio.create_subprocess_exec(
-                    "yt-dlp",
-                    "--cookies",cookie_txt_file(),
-                    "-g",
-                    "-f",
-                    "best[height<=?720][width<=?1280]",
-                    f"{link}",
-                    stdout=asyncio.subprocess.PIPE,
-                    stderr=asyncio.subprocess.PIPE,
-                )
-                stdout, stderr = await proc.communicate()
-                if stdout:
-                    downloaded_file = stdout.decode().split("\n")[0]
-                    direct = False
-                else:
-                   file_size = await check_file_size(link)
-                   if not file_size:
-                     print("None file Size")
-                     return
-                   total_size_mb = file_size / (1024 * 1024)
-                   if total_size_mb > 250:
-                     print(f"File size {total_size_mb:.2f} MB exceeds the 100MB limit.")
-                     return None
-                   direct = True
-                   downloaded_file = await loop.run_in_executor(None, video_dl)
+            downloaded_file = await get_stream_url(link, True)
+            direct = None
         else:
-            direct = True
-            downloaded_file = await loop.run_in_executor(None, audio_dl)
+            direct = None
+            downloaded_file = await get_stream_url(link, False)
         return downloaded_file, direct
