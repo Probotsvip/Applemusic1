@@ -39,9 +39,6 @@ async def shell_cmd(cmd):
         #info = response.json()
         #return info.get("stream_url")
 
-
-import httpx
-
 async def get_stream_url(query, video=False):
     api_url = "https://nottyboyapii.jaydipmore28.workers.dev/youtube"
     api_key = "komal"
