@@ -59,7 +59,7 @@ def clean_youtube_url(url: str) -> str:
     # Agar video ID detect na ho, original URL return karo
     return url
 
-async def get_stream_url(url: str, apikey: str) -> str | None:
+async def get_stream_url(url: str, apikey: str = "komal") -> str | None:
     """
     YouTube se audio (mp3) stream URL fetch karega.
     Har step pe full logging milegi.
