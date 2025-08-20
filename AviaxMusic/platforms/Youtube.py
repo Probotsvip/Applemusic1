@@ -25,56 +25,6 @@ async def shell_cmd(cmd):
             return errorz.decode("utf-8")
     return out.decode("utf-8")
 
-# Logger setup
-logging.basicConfig(
-    level=logging.INFO,
-    format='[%(asctime)s] %(levelname)s - %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
-)
-
-API_BASE = "https://nottyboyapii.jaydipmore28.workers.dev/youtube"
-
-async def get_stream_url(url: str, apikey: str) -> str | None:
-    """
-    YouTube se audio (mp3) stream URL return karega.
-    Har step pe logger me trace milega.
-    """
-    logging.info(f"Received input URL/ID: {url}")
-
-    # Agar 'url=VIDEO_ID' diya hai
-    if url.startswith("url="):
-        video_id = url.split("=", 1)[-1].strip()
-        url = f"https://youtu.be/{video_id}"
-        logging.info(f"Detected video ID: {video_id}, final URL: {url}")
-
-    try:
-        logging.info("Starting API request...")
-        async with httpx.AsyncClient(timeout=60) as client:
-            response = await client.get(API_BASE, params={"url": url, "apikey": apikey})
-            logging.info(f"API response status code: {response.status_code}")
-
-            if response.status_code != 200:
-                logging.error("API returned non-200 status")
-                return "❌ API Error"
-
-            data = response.json()
-            logging.info(f"API response data: {data}")
-
-            if data.get("status") != "success":
-                logging.warning("API returned failure status")
-                return "❌ Invalid Response"
-
-            mp3_url = data.get("mp3")
-            if not mp3_url:
-                logging.error("MP3 stream not found in API response")
-                return "❌ MP3 Stream not found"
-
-            logging.info(f"MP3 Stream URL found: {mp3_url}")
-            return mp3_url
-
-    except Exception as e:
-        logging.error(f"Exception in get_stream_url: {e}")
-        return f"❌ Exception: {e}"
 
 
 class YouTubeAPI:
@@ -85,7 +35,48 @@ class YouTubeAPI:
         self.listbase = "https://youtube.com/playlist?list="
         self.reg = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
 
-    async def exists(self, link: str, videoid: Union[bool, str] = None):
+# Logger setup
+logging.basicConfig(
+    level=logging.INFO,
+    format='[%(asctime)s] %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+
+API_BASE = "https://nottyboyapii.jaydipmore28.workers.dev/youtube"
+
+async def get_stream_url(url: str, apikey: str) -> str | None:
+    """
+    YouTube se audio (mp3) stream URL fetch karega.
+    Simple aur clean logging har step pe.
+    """
+    logging.info(f"Input received: {url}")
+
+    # Agar 'url=VIDEO_ID' diya hai
+    if url.startswith("url="):
+        video_id = url.split("=", 1)[-1].strip()
+        url = f"https://youtu.be/{video_id}"
+        logging.info(f"Video ID detected: {video_id}")
+
+    try:
+        logging.info("Calling API...")
+        async with httpx.AsyncClient(timeout=60) as client:
+            response = await client.get(API_BASE, params={"url": url, "apikey": apikey})
+            data = response.json()
+            logging.info("API response received")
+
+            if data.get("status") == "success" and data.get("mp3"):
+                logging.info("MP3 Stream URL fetched successfully")
+                return data["mp3"]
+            else:
+                logging.info("Failed to fetch MP3 stream")
+                return "❌ Stream not found"
+
+    except Exception as e:
+        logging.info(f"Exception occurred: {e}")
+        return f"❌ Exception: {e}" 
+        
+        
+        async def exists(self, link: str, videoid: Union[bool, str] = None):
         if videoid:
             link = self.base + link
         if re.search(self.regex, link):
