@@ -25,40 +25,33 @@ async def shell_cmd(cmd):
             return errorz.decode("utf-8")
     return out.decode("utf-8")
 
-
 API_BASE = "https://nottyboyapii.jaydipmore28.workers.dev/youtube"
-
 async def get_stream_url(url: str, apikey: str) -> str | None:
     """
     YouTube se audio (mp3) stream URL return karega.
-
+    
     Args:
         url (str): YouTube video ka link ya 'url=VIDEO_ID'
-        apikey (str): Tera API key
-
+        apikey (str): API key
+    
     Returns:
-        str | None: MP3 ka direct link, ya None agar error aaya
+        str | None: MP3 direct link, ya None agar error aaya
     """
-
-    # Agar 'url=' ke saath video id diya hai
+    # Agar 'url=VIDEO_ID' diya hai to proper YouTube URL bana do
     if url.startswith("url="):
-        video_id = url.split("=", 1)[-1]
+        video_id = url.split("=", 1)[-1].strip()
         url = f"https://youtu.be/{video_id}"
+        try:
+        async with httpx.AsyncClient(timeout=20) as client:
+            response = await client.get(API_BASE, params={"url": url, "apikey": apikey})
+            if response.status_code != 200:
+                return None
 
-    try:
-        async with httpx.AsyncClient(timeout=30) as client:
-            params = {"url": url, "apikey": apikey}
-            response = await client.get(API_BASE, params=params)
-            response.raise_for_status()
             data = response.json()
-
-            if data.get("status") == "success":
-                return data.get("mp3")
-            return None
+            return data.get("mp3") if data.get("status") == "success" else None
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"[get_stream_url] Error: {e}")
         return None
-
 
 
 class YouTubeAPI:
