@@ -42,7 +42,7 @@ async def get_stream_url(url: str, apikey: str) -> str | None:
         video_id = url.split("=", 1)[-1].strip()
         url = f"https://youtu.be/{video_id}"
         try:
-        async with httpx.AsyncClient(timeout=20) as client:
+        async with httpx.AsyncClient(timeout=60) as client:
             response = await client.get(API_BASE, params={"url": url, "apikey": apikey})
             if response.status_code != 200:
                 return None
