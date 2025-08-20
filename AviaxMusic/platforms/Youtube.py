@@ -162,7 +162,7 @@ class YouTubeAPI:
         if "&" in link:
             link = link.split("&")[0]
             
-        return await get_stream_url(link, True)
+        #return await get_stream_url(link, True)
         
 
     async def playlist(self, link, limit, user_id, videoid: Union[bool, str] = None):
