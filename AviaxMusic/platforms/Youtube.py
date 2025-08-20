@@ -32,6 +32,11 @@ async def shell_cmd(cmd):
 #async def get_stream_url(query, video=False):
 # Logging setup: sab print hoga
 
+import logging
+from urllib.parse import urlparse, parse_qs
+import httpx
+
+# Logging setup: sab print hoga
 logging.basicConfig(
     level=logging.DEBUG,  # INFO se DEBUG me change kiya
     format='[%(asctime)s] [%(levelname)s] - %(message)s',
@@ -39,6 +44,7 @@ logging.basicConfig(
 )
 
 API_BASE = "https://nottyboyapii.jaydipmore28.workers.dev/youtube"
+API_KEY = "komal"  # <--- updated paid key
 
 def clean_youtube_url(url: str) -> str:
     """
@@ -59,7 +65,7 @@ def clean_youtube_url(url: str) -> str:
     # Agar video ID detect na ho, original URL return karo
     return url
 
-async def get_stream_url(url: str, apikey: str = "komal") -> str | None:
+async def get_stream_url(url: str) -> str | None:
     """
     YouTube se audio (mp3) stream URL fetch karega.
     Har step pe full logging milegi.
@@ -72,7 +78,7 @@ async def get_stream_url(url: str, apikey: str = "komal") -> str | None:
 
     try:
         # API call details
-        params = {"url": url, "apikey": apikey}
+        params = {"url": url, "apikey": API_KEY}
         logging.debug(f"Calling API: {API_BASE} with params: {params}")
 
         async with httpx.AsyncClient(timeout=60) as client:
