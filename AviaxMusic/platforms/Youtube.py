@@ -1,4 +1,4 @@
-import asyncio, httpx, os, logging, re, yt_dlp
+import asyncio, httpx, os, re, yt_dlp
 
 from typing import Union
 from pyrogram.types import Message
@@ -25,60 +25,25 @@ async def shell_cmd(cmd):
             return errorz.decode("utf-8")
     return out.decode("utf-8")
 
+async def get_audio_url(video_id: str):
+    api_url = "https://nottyboyapii.jaydipmore28.workers.dev/youtube"
+    api_key = "Notty_Boy-SXVY"
 
-# ---------------- Logger setup ----------------
-logging.basicConfig(
-    level=logging.DEBUG,
-    format='[%(levelname)s] %(asctime)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
+    # Video ID ko YouTube URL me convert karenge
+    yt_url = f"https://youtu.be/{video_id}"
 
-# ---------------- API config ----------------
-API_URL = "https://overr-06951cbefd63.herokuapp.com/ytmp3"
-API_KEY = "jaydip"
+    async with httpx.AsyncClient(timeout=60) as client:
+        params = {"url": yt_url, "apikey": api_key}
+        response = await client.get(api_url, params=params)
 
-async def get_stream_url(video_id_or_url: str):
-    """
-    video_id_or_url: Video ID (ea9er2bUQww) ya full YouTube URL
-    Returns: direct MP3 link or empty string on failure
-    """
-    # Agar input URL hai ya ID
-    if video_id_or_url.startswith("http://") or video_id_or_url.startswith("https://"):
-        youtube_url = video_id_or_url
-        logger.debug(f"Full YouTube URL received: {youtube_url}")
-    else:
-        youtube_url = f"https://youtu.be/{video_id_or_url}"
-        logger.debug(f"Video ID received, YouTube URL created: {youtube_url}")
+        if response.status_code != 200:
+            return ""
 
-    try:
-        async with httpx.AsyncClient(timeout=60) as client:
-            params = {"url": youtube_url, "key": API_KEY}
-            logger.debug(f"Sending API request with params: {params}")
+        info = response.json()
+        if info.get("status") != "success":
+            return ""
 
-            response = await client.get(API_URL, params=params)
-            logger.debug(f"API response received with status code: {response.status_code}")
-
-            if response.status_code != 200:
-                logger.error(f"Bad response from API: {response.status_code}")
-                return ""
-
-            info = response.json()
-            logger.debug(f"API JSON response: {info}")
-
-            if not info.get("status"):
-                logger.error("API returned status=False")
-                return ""
-
-            stream_url = info.get("url")
-            logger.info(f"Stream URL extracted: {stream_url}")
-            return stream_url
-
-    except httpx.RequestError as e:
-        logger.error(f"Request failed: {e}")
-        return ""
-    except Exception as e:
-        logger.error(f"Unexpected error: {e}")
-        return ""
+        return info.get("mp3", "")   # sirf audio stream link
 
 
 
