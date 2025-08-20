@@ -39,22 +39,35 @@ async def shell_cmd(cmd):
         #info = response.json()
         #return info.get("stream_url")
 
-async def get_stream_url(query, video=False):
-    api_url = "https://nottyboyapii.jaydipmore28.workers.dev/youtube"
-    api_key = "komal"
+API_BASE = "https://nottyboyapii.jaydipmore28.workers.dev/youtube"
+API_KEY = "komal"  # Tumhara API key
 
-    # Clean/convert query to proper URL
+def clean_youtube_url(query: str) -> str:
+    """
+    Agar query me full URL hai, wahi return kare.
+    Agar query sirf video ID hai, to usko YouTube URL me convert kare.
+    """
+    if query.startswith("http://") or query.startswith("https://"):
+        return query  # Already a URL
+    else:
+        # Assume it's a video ID
+        return f"https://www.youtube.com/watch?v={query}"
+
+async def get_stream_url(query: str, video=False) -> str:
+    """
+    YouTube video ID ya URL se mp3 stream URL fetch kare.
+    """
     url = clean_youtube_url(query)
     
     async with httpx.AsyncClient(timeout=60, verify=False) as client:
-        params = {"url": url, "apikey": api_key}
-        response = await client.get(api_url, params=params)
+        params = {"url": url, "apikey": API_KEY}
+        response = await client.get(API_BASE, params=params)
         
         if response.status_code != 200:
             return ""
         
         info = response.json()
-        return info.get("mp3", "")
+        return info.get("mp3", "")  # API ke response se mp3 URL return
 
 class YouTubeAPI:
     def __init__(self):
