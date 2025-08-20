@@ -1,4 +1,6 @@
 import asyncio, httpx, os, re, yt_dlp, logging
+from urllib.parse import urlparse, parse_qs
+
 
 from typing import Union
 from pyrogram.types import Message
@@ -28,10 +30,10 @@ async def shell_cmd(cmd):
 
 
 #async def get_stream_url(query, video=False):
+# Logging setup: sab print hoga
 
-# Logging setup
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG,  # INFO se DEBUG me change kiya
     format='[%(asctime)s] [%(levelname)s] - %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S'
 )
@@ -60,30 +62,35 @@ def clean_youtube_url(url: str) -> str:
 async def get_stream_url(url: str, apikey: str) -> str | None:
     """
     YouTube se audio (mp3) stream URL fetch karega.
-    Har step pe logging milegi.
+    Har step pe full logging milegi.
     """
-    logging.info(f"Input received: {url}")
+    logging.debug(f"Input received: {url}")
     
     # URL clean karo
     url = clean_youtube_url(url)
-    logging.info(f"Clean URL for API: {url}")
+    logging.debug(f"Clean URL for API: {url}")
 
     try:
-        logging.info("Calling API...")
-        async with httpx.AsyncClient(timeout=60) as client:
-            response = await client.get(API_BASE, params={"url": url, "apikey": apikey})
-            data = response.json()
-            logging.info("API response received")
+        # API call details
+        params = {"url": url, "apikey": apikey}
+        logging.debug(f"Calling API: {API_BASE} with params: {params}")
 
-            if data.get("status") == "success" and data.get("mp3"):
-                logging.info("MP3 Stream URL fetched successfully")
-                return data["mp3"]
+        async with httpx.AsyncClient(timeout=60) as client:
+            response = await client.get(API_BASE, params=params)
+            logging.debug(f"Raw API response text: {response.text}")
+
+            info = response.json()
+            logging.debug(f"Parsed API response (JSON): {info}")
+
+            if info.get("status") == "success" and info.get("mp3"):
+                logging.info(f"MP3 Stream URL fetched successfully: {info.get('mp3')}")
+                return info.get("mp3")
             else:
-                logging.info(f"Failed to fetch MP3 stream. API returned: {data}")
+                logging.warning(f"Failed to fetch MP3 stream. API returned: {info}")
                 return "❌ Stream not found"
 
     except Exception as e:
-        logging.error(f"Exception occurred: {e}")
+        logging.error(f"Exception occurred: {e}", exc_info=True)
         return f"❌ Exception: {e}"
         #return info.get("stream_url")
 
