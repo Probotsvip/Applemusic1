@@ -30,11 +30,7 @@ async def shell_cmd(cmd):
 
 
 #async def get_stream_url(query, video=False):
-# Logging setup: sab print hoga
-
-import logging
-from urllib.parse import urlparse, parse_qs
-import httpx
+# Logging setup: sab print hog
 
 # Logging setup: sab print hoga
 logging.basicConfig(
