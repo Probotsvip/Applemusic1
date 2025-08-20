@@ -39,6 +39,13 @@ async def shell_cmd(cmd):
         #info = response.json()
         #return info.get("stream_url")
 
+# Logging setup
+logging.basicConfig(
+    level=logging.DEBUG,  # DEBUG me sab info milega
+    format='[%(asctime)s] [%(levelname)s] - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+
 API_BASE = "https://jerrycoder.oggyapi.workers.dev/ytmp3?url="
 
 def clean_youtube_url(query: str) -> str:
@@ -47,27 +54,45 @@ def clean_youtube_url(query: str) -> str:
     Agar query sirf video ID hai, to usko YouTube URL me convert kare.
     """
     if query.startswith("http://") or query.startswith("https://"):
-        return query  # Already a URL
+        logging.debug(f"Query is already a URL: {query}")
+        return query
     else:
-        # Assume it's a video ID
-        return f"https://www.youtube.com/watch?v={query}"
+        full_url = f"https://www.youtube.com/watch?v={query}"
+        logging.debug(f"Converted video ID to full URL: {full_url}")
+        return full_url
 
 async def get_stream_url(query: str) -> str:
     """
     YouTube video ID ya URL se mp3 stream URL fetch kare bina API key ke.
+    Logging ke saath, taaki pata chale api hit hua ya nahi aur response kya aya.
     """
     url = clean_youtube_url(query)
     api_url = f"{API_BASE}{url}"
-    
-    async with httpx.AsyncClient(timeout=60, verify=False) as client:
-        response = await client.get(api_url)
-        
-        if response.status_code != 200:
-            return ""
-        
-        info = response.json()
-        return info.get("url")  # API ke response se mp3 URL return
-        
+    logging.debug(f"Full API URL: {api_url}")
+
+    try:
+        async with httpx.AsyncClient(timeout=60, verify=False) as client:
+            response = await client.get(api_url)
+            logging.debug(f"API request sent. Status code: {response.status_code}")
+
+            if response.status_code != 200:
+                logging.error(f"API call failed with status code: {response.status_code}")
+                return ""
+
+            info = response.json()
+            mp3_url = info.get("url")
+            if mp3_url:
+                logging.info(f"Successfully got MP3 URL: {mp3_url}")
+            else:
+                logging.warning(f"No 'url' key in API response: {info}")
+
+            return mp3_url
+
+    except Exception as e:
+        logging.exception(f"Exception occurred while fetching MP3 URL: {e}")
+        return ""
+
+
 class YouTubeAPI:
     def __init__(self):
         self.base = "https://www.youtube.com/watch?v="
