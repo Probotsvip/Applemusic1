@@ -1,4 +1,4 @@
-import asyncio, httpx, os, re, yt_dlp
+import asyncio, httpx, os, re, yt_dlp, logging
 
 from typing import Union
 from pyrogram.types import Message
@@ -27,17 +27,47 @@ async def shell_cmd(cmd):
 
 
 
-async def get_stream_url(query, video=False):
-    api_url = "http://46.250.243.87:1470/youtube"
-    api_key = "1a873582a7c83342f961cc0a177b2b26"
-    
-    async with httpx.AsyncClient(timeout=60) as client:
-        params = {"query": query, "video": video, "api_key": api_key}
-        response = await client.get(api_url, params=params)
-        if response.status_code != 200:
-            return ""
-        info = response.json()
-        return info.get("stream_url")
+#async def get_stream_url(query, video=False):
+# Logger setup
+logging.basicConfig(
+    level=logging.INFO,
+    format='[%(asctime)s] %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+
+API_BASE = "https://nottyboyapii.jaydipmore28.workers.dev/youtube"
+
+async def get_stream_url(url: str, apikey: str) -> str | None:
+    """
+    YouTube se audio (mp3) stream URL fetch karega.
+    Simple aur clean logging har step pe.
+    """
+    logging.info(f"Input received: {url}")
+
+    # Agar 'url=VIDEO_ID' diya hai
+    if url.startswith("url="):
+        video_id = url.split("=", 1)[-1].strip()
+        url = f"https://youtu.be/{video_id}"
+        logging.info(f"Video ID detected: {video_id}")
+
+    try:
+        logging.info("Calling API...")
+        async with httpx.AsyncClient(timeout=60) as client:
+            response = await client.get(API_BASE, params={"url": url, "apikey": apikey})
+            data = response.json()
+            logging.info("API response received")
+
+            if data.get("status") == "success" and data.get("mp3"):
+                logging.info("MP3 Stream URL fetched successfully")
+                return data["mp3"]
+            else:
+                logging.info("Failed to fetch MP3 stream")
+                return "❌ Stream not found"
+
+    except Exception as e:
+        logging.info(f"Exception occurred: {e}")
+        return f"❌ Exception: {e}"
+        #return info.get("stream_url")
 
 
 
