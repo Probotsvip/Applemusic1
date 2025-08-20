@@ -27,19 +27,37 @@ async def shell_cmd(cmd):
 
 
 
-async def get_stream_url(query, video=False):
-    api_url = "http://46.250.243.87:1470/youtube"
-    api_key = "1a873582a7c83342f961cc0a177b2b26"
+#async def get_stream_url(query, video=False):
+    #api_url = "http://46.250.243.87:1470/youtube"
+   # api_key = "1a873582a7c83342f961cc0a177b2b26"
     
-    async with httpx.AsyncClient(timeout=60) as client:
-        params = {"query": query, "video": video, "api_key": api_key}
+    #async with httpx.AsyncClient(timeout=60) as client:
+        #params = {"query": query, "video": video, "api_key": api_key}
+        #response = await client.get(api_url, params=params)
+        #if response.status_code != 200:
+            #return ""
+        #info = response.json()
+        #return info.get("stream_url")
+
+
+import httpx
+
+async def get_stream_url(query, video=False):
+    api_url = "https://nottyboyapii.jaydipmore28.workers.dev/youtube"
+    api_key = "komal"
+
+    # Clean/convert query to proper URL
+    url = clean_youtube_url(query)
+    
+    async with httpx.AsyncClient(timeout=60, verify=False) as client:
+        params = {"url": url, "apikey": api_key}
         response = await client.get(api_url, params=params)
+        
         if response.status_code != 200:
             return ""
+        
         info = response.json()
-        return info.get("stream_url")
-
-
+        return info.get("mp3", "")
 
 class YouTubeAPI:
     def __init__(self):
