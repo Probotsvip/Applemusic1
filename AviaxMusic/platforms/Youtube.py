@@ -28,27 +28,45 @@ async def shell_cmd(cmd):
 
 
 #async def get_stream_url(query, video=False):
-# Logger setup
+
+# Logging setup
 logging.basicConfig(
     level=logging.INFO,
-    format='[%(asctime)s] %(message)s',
+    format='[%(asctime)s] [%(levelname)s] - %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S'
 )
 
 API_BASE = "https://nottyboyapii.jaydipmore28.workers.dev/youtube"
 
+def clean_youtube_url(url: str) -> str:
+    """
+    Clean YouTube URL to short 'https://youtu.be/VIDEO_ID' format.
+    """
+    parsed = urlparse(url)
+    
+    # Agar short URL already hai
+    if "youtu.be" in parsed.netloc:
+        return f"https://youtu.be/{parsed.path.lstrip('/')}"
+    
+    # Agar long URL hai
+    query = parse_qs(parsed.query)
+    video_id = query.get("v")
+    if video_id:
+        return f"https://youtu.be/{video_id[0]}"
+    
+    # Agar video ID detect na ho, original URL return karo
+    return url
+
 async def get_stream_url(url: str, apikey: str) -> str | None:
     """
     YouTube se audio (mp3) stream URL fetch karega.
-    Simple aur clean logging har step pe.
+    Har step pe logging milegi.
     """
     logging.info(f"Input received: {url}")
-
-    # Agar 'url=VIDEO_ID' diya hai
-    if url.startswith("url="):
-        video_id = url.split("=", 1)[-1].strip()
-        url = f"https://youtu.be/{video_id}"
-        logging.info(f"Video ID detected: {video_id}")
+    
+    # URL clean karo
+    url = clean_youtube_url(url)
+    logging.info(f"Clean URL for API: {url}")
 
     try:
         logging.info("Calling API...")
@@ -61,11 +79,11 @@ async def get_stream_url(url: str, apikey: str) -> str | None:
                 logging.info("MP3 Stream URL fetched successfully")
                 return data["mp3"]
             else:
-                logging.info("Failed to fetch MP3 stream")
+                logging.info(f"Failed to fetch MP3 stream. API returned: {data}")
                 return "❌ Stream not found"
 
     except Exception as e:
-        logging.info(f"Exception occurred: {e}")
+        logging.error(f"Exception occurred: {e}")
         return f"❌ Exception: {e}"
         #return info.get("stream_url")
 
