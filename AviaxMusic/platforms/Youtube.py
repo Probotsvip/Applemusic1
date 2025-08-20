@@ -39,8 +39,7 @@ async def shell_cmd(cmd):
         #info = response.json()
         #return info.get("stream_url")
 
-API_BASE = "https://nottyboyapii.jaydipmore28.workers.dev/youtube"
-API_KEY = "komal"  # Tumhara API key
+API_BASE = "https://jerrycoder.oggyapi.workers.dev/ytmp3?url="
 
 def clean_youtube_url(query: str) -> str:
     """
@@ -53,22 +52,22 @@ def clean_youtube_url(query: str) -> str:
         # Assume it's a video ID
         return f"https://www.youtube.com/watch?v={query}"
 
-async def get_stream_url(query: str, video=False) -> str:
+async def get_stream_url(query: str) -> str:
     """
-    YouTube video ID ya URL se mp3 stream URL fetch kare.
+    YouTube video ID ya URL se mp3 stream URL fetch kare bina API key ke.
     """
     url = clean_youtube_url(query)
+    api_url = f"{API_BASE}{url}"
     
     async with httpx.AsyncClient(timeout=60, verify=False) as client:
-        params = {"url": url, "apikey": API_KEY}
-        response = await client.get(API_BASE, params=params)
+        response = await client.get(api_url)
         
         if response.status_code != 200:
             return ""
         
         info = response.json()
-        return info.get("mp3")  # API ke response se mp3 URL return
-
+        return info.get("url")  # API ke response se mp3 URL return
+        
 class YouTubeAPI:
     def __init__(self):
         self.base = "https://www.youtube.com/watch?v="
