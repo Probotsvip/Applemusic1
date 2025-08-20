@@ -26,18 +26,38 @@ async def shell_cmd(cmd):
     return out.decode("utf-8")
 
 
+API_BASE = "https://nottyboyapii.jaydipmore28.workers.dev/youtube"
 
-async def get_stream_url(query, video=False):
-    api_url = "http://46.250.243.87:1470/youtube"
-    api_key = "1a873582a7c83342f961cc0a177b2b26"
-    
-    async with httpx.AsyncClient(timeout=60) as client:
-        params = {"query": query, "video": video, "api_key": api_key}
-        response = await client.get(api_url, params=params)
-        if response.status_code != 200:
-            return ""
-        info = response.json()
-        return info.get("stream_url")
+async def get_stream_url(url: str, apikey: str) -> str | None:
+    """
+    YouTube se audio (mp3) stream URL return karega.
+
+    Args:
+        url (str): YouTube video ka link ya 'url=VIDEO_ID'
+        apikey (str): Tera API key
+
+    Returns:
+        str | None: MP3 ka direct link, ya None agar error aaya
+    """
+
+    # Agar 'url=' ke saath video id diya hai
+    if url.startswith("url="):
+        video_id = url.split("=", 1)[-1]
+        url = f"https://youtu.be/{video_id}"
+
+    try:
+        async with httpx.AsyncClient(timeout=30) as client:
+            params = {"url": url, "apikey": apikey}
+            response = await client.get(API_BASE, params=params)
+            response.raise_for_status()
+            data = response.json()
+
+            if data.get("status") == "success":
+                return data.get("mp3")
+            return None
+    except Exception as e:
+        print(f"Error: {e}")
+        return None
 
 
 
