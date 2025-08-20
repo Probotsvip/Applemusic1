@@ -24,7 +24,7 @@ LOG_GROUP_ID = int(getenv("LOG_GROUP_ID", -1002023049910))
 BOT_USERNAME = getenv("BOT_USERNAME", None)  # replace with your actual bot username
 
 # Get this value from @MissRose_Bot on Telegram by /id
-OWNER_ID = int(getenv("OWNER_ID", 7168729089))
+OWNER_ID = int(getenv("OWNER_ID", 6421770811))
 
 ## Fill these variables if you're deploying on heroku.
 # API URL - here
@@ -126,4 +126,5 @@ if SUPPORT_GROUP:
         raise SystemExit(
             "[ERROR] - Your SUPPORT_GROUP url is wrong. Please ensure that it starts with https://"
         )
+
 
