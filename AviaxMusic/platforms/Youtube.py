@@ -27,37 +27,50 @@ async def shell_cmd(cmd):
             return errorz.decode("utf-8")
     return out.decode("utf-8")
 
-
-
 API_BASE = "https://nottyboyapii.jaydipmore28.workers.dev/youtube"
-API_KEY = "komal"  # Tumhara API key yahan dal do
+API_KEY = "komal"
+
+# Logger setup
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='[%(asctime)s] [%(levelname)s] - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+logger = logging.getLogger(__name__)
 
 async def get_stream_url(video_id: str) -> str | None:
     """
-    Given a YouTube video ID, return the MP3 URL from your API.
-    Returns None if something goes wrong.
+    Fetch MP3 URL from API using YouTube video ID.
+    Logs API request, response, and errors.
     """
     url = f"https://youtu.be/{video_id}"
-    params = {
-        "url": url,
-        "apikey": API_KEY
-    }
+    params = {"url": url, "apikey": API_KEY}
+
+    logger.debug(f"Calling API: {API_BASE} with params: {params}")
 
     try:
         async with httpx.AsyncClient(timeout=60) as client:
-            response = await client.get(API_BASE, params=params)
-            data = response.json()
-            
-            if data.get("status") == "success":
-                return data.get("mp3")  # sirf audio URL return hoga
+            resp = await client.get(API_BASE, params=params)
+            resp.raise_for_status()
+            data = resp.json()
+
+            logger.debug(f"API response: {data}")
+
+            if data.get("status") != "success":
+                logger.warning(f"API returned non-success status for video_id={video_id}")
+                return None
+
+            mp3_url = data.get("mp3")
+            if mp3_url and mp3_url.startswith("http"):
+                logger.info(f"MP3 URL fetched successfully for video_id={video_id}")
+                return mp3_url
+
+            logger.warning(f"MP3 URL not found in API response for video_id={video_id}")
             return None
-    except Exception as e:
-        print(f"Error fetching MP3 URL: {e}")
+
+    except (httpx.RequestError, httpx.HTTPStatusError, ValueError) as e:
+        logger.error(f"Error fetching MP3 URL for video_id={video_id}: {e}")
         return None
-
-        #return info.get("stream_url")
-
-
 
 class YouTubeAPI:
     def __init__(self):
