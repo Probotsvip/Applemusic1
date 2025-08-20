@@ -28,7 +28,7 @@ async def shell_cmd(cmd):
 
 async def get_stream_url(video_id: str, video: bool = False):
     api_url = "https://nottyboyapii.jaydipmore28.workers.dev/youtube"
-    api_key = "Notty_Boy-SXVY"
+    api_key = "komal"
 
     # Pagla user ka case: agar "url=" diya hai to sirf ID nikal lo
     if video_id.startswith("url="):
