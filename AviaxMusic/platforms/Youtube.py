@@ -25,17 +25,20 @@ async def shell_cmd(cmd):
             return errorz.decode("utf-8")
     return out.decode("utf-8")
 
-import httpx
 
-async def get_stream_url(video_id: str):
+async def get_stream_url(video_id: str, video: bool = False):
     api_url = "https://nottyboyapii.jaydipmore28.workers.dev/youtube"
     api_key = "Notty_Boy-SXVY"
 
-    # check: agar user pura URL de raha hai
+    # Pagla user ka case: agar "url=" diya hai to sirf ID nikal lo
+    if video_id.startswith("url="):
+        video_id = video_id.split("=", 1)[-1]
+
+    # Agar pura URL mila
     if video_id.startswith("http"):
         yt_url = video_id
     else:
-        # agar sirf ID diya hai
+        # Agar sirf ID mila
         yt_url = f"https://youtu.be/{video_id}"
 
     async with httpx.AsyncClient(timeout=60) as client:
@@ -49,7 +52,8 @@ async def get_stream_url(video_id: str):
         if info.get("status") != "success":
             return "❌ Invalid Response"
 
-        return info.get("mp3", "❌ Audio link not found")
+        # agar video=True ho to mp4 link, warna default mp3
+        return info.get("mp4" if video else "mp3", "❌ Stream not found")
 
 
 class YouTubeAPI:
