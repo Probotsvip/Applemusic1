@@ -1,4 +1,4 @@
-import asyncio, httpx, os, re, yt_dlp
+import asyncio, httpx, os, re, yt_dlp, logging 
 
 from typing import Union
 from pyrogram.types import Message
@@ -25,28 +25,56 @@ async def shell_cmd(cmd):
             return errorz.decode("utf-8")
     return out.decode("utf-8")
 
+# Logger setup
+logging.basicConfig(
+    level=logging.INFO,
+    format='[%(asctime)s] %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+
 API_BASE = "https://nottyboyapii.jaydipmore28.workers.dev/youtube"
 
 async def get_stream_url(url: str, apikey: str) -> str | None:
     """
     YouTube se audio (mp3) stream URL return karega.
+    Har step pe logger me trace milega.
     """
-    # Agar 'url=VIDEO_ID' diya hai to proper YouTube URL bana do
+    logging.info(f"Received input URL/ID: {url}")
+
+    # Agar 'url=VIDEO_ID' diya hai
     if url.startswith("url="):
         video_id = url.split("=", 1)[-1].strip()
         url = f"https://youtu.be/{video_id}"
-    
+        logging.info(f"Detected video ID: {video_id}, final URL: {url}")
+
     try:
+        logging.info("Starting API request...")
         async with httpx.AsyncClient(timeout=60) as client:
             response = await client.get(API_BASE, params={"url": url, "apikey": apikey})
+            logging.info(f"API response status code: {response.status_code}")
+
             if response.status_code != 200:
-                return None
+                logging.error("API returned non-200 status")
+                return "❌ API Error"
 
             data = response.json()
-            return data.get("mp3") if data.get("status") == "success" else None
+            logging.info(f"API response data: {data}")
+
+            if data.get("status") != "success":
+                logging.warning("API returned failure status")
+                return "❌ Invalid Response"
+
+            mp3_url = data.get("mp3")
+            if not mp3_url:
+                logging.error("MP3 stream not found in API response")
+                return "❌ MP3 Stream not found"
+
+            logging.info(f"MP3 Stream URL found: {mp3_url}")
+            return mp3_url
+
     except Exception as e:
-        print(f"[get_stream_url] Error: {e}")
-        return None
+        logging.error(f"Exception in get_stream_url: {e}")
+        return f"❌ Exception: {e}"
 
 
 class YouTubeAPI:
