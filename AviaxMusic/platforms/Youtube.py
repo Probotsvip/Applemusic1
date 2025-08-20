@@ -151,7 +151,7 @@ class YouTubeAPI:
             link = self.base + link
         if "&" in link:
             link = link.split("&")[0]
-        results = VideosSearch(link, limit=1)y
+        results = VideosSearch(link, limit=1)
         for result in (await results.next())["result"]:
             duration = result["duration"]
         return duration
