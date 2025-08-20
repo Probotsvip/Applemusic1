@@ -26,22 +26,17 @@ async def shell_cmd(cmd):
     return out.decode("utf-8")
 
 API_BASE = "https://nottyboyapii.jaydipmore28.workers.dev/youtube"
+
 async def get_stream_url(url: str, apikey: str) -> str | None:
     """
     YouTube se audio (mp3) stream URL return karega.
-    
-    Args:
-        url (str): YouTube video ka link ya 'url=VIDEO_ID'
-        apikey (str): API key
-    
-    Returns:
-        str | None: MP3 direct link, ya None agar error aaya
     """
     # Agar 'url=VIDEO_ID' diya hai to proper YouTube URL bana do
     if url.startswith("url="):
         video_id = url.split("=", 1)[-1].strip()
         url = f"https://youtu.be/{video_id}"
-        try:
+    
+    try:
         async with httpx.AsyncClient(timeout=60) as client:
             response = await client.get(API_BASE, params={"url": url, "apikey": apikey})
             if response.status_code != 200:
