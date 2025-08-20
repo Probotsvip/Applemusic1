@@ -67,7 +67,7 @@ async def get_stream_url(query: str, video=False) -> str:
             return ""
         
         info = response.json()
-        return info.get("mp3", "")  # API ke response se mp3 URL return
+        return info.get("mp3")  # API ke response se mp3 URL return
 
 class YouTubeAPI:
     def __init__(self):
