@@ -29,71 +29,32 @@ async def shell_cmd(cmd):
 
 
 
-#async def get_stream_url(query, video=False):
-# Logging setup: sab print hog
-
-# Logging setup: sab print hoga
-logging.basicConfig(
-    level=logging.DEBUG,  # INFO se DEBUG me change kiya
-    format='[%(asctime)s] [%(levelname)s] - %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
-)
-
 API_BASE = "https://nottyboyapii.jaydipmore28.workers.dev/youtube"
-API_KEY = "komal"  # <--- updated paid key
+API_KEY = "komal"  # Tumhara API key yahan dal do
 
-def clean_youtube_url(url: str) -> str:
+async def get_stream_url(video_id: str) -> str | None:
     """
-    Clean YouTube URL to short 'https://youtu.be/VIDEO_ID' format.
+    Given a YouTube video ID, return the MP3 URL from your API.
+    Returns None if something goes wrong.
     """
-    parsed = urlparse(url)
-    
-    # Agar short URL already hai
-    if "youtu.be" in parsed.netloc:
-        return f"https://youtu.be/{parsed.path.lstrip('/')}"
-    
-    # Agar long URL hai
-    query = parse_qs(parsed.query)
-    video_id = query.get("v")
-    if video_id:
-        return f"https://youtu.be/{video_id[0]}"
-    
-    # Agar video ID detect na ho, original URL return karo
-    return url
-
-async def get_stream_url(url: str) -> str | None:
-    """
-    YouTube se audio (mp3) stream URL fetch karega.
-    Har step pe full logging milegi.
-    """
-    logging.debug(f"Input received: {url}")
-    
-    # URL clean karo
-    url = clean_youtube_url(url)
-    logging.debug(f"Clean URL for API: {url}")
+    url = f"https://youtu.be/{video_id}"
+    params = {
+        "url": url,
+        "apikey": API_KEY
+    }
 
     try:
-        # API call details
-        params = {"url": url, "apikey": API_KEY}
-        logging.debug(f"Calling API: {API_BASE} with params: {params}")
-
         async with httpx.AsyncClient(timeout=60) as client:
             response = await client.get(API_BASE, params=params)
-            logging.debug(f"Raw API response text: {response.text}")
-
-            info = response.json()
-            logging.debug(f"Parsed API response (JSON): {info}")
-
-            if info.get("status") == "success" and info.get("mp3"):
-                logging.info(f"MP3 Stream URL fetched successfully: {info.get('mp3')}")
-                return info.get("mp3")
-            else:
-                logging.warning(f"Failed to fetch MP3 stream. API returned: {info}")
-                return "❌ Stream not found"
-
+            data = response.json()
+            
+            if data.get("status") == "success":
+                return data.get("mp3")  # sirf audio URL return hoga
+            return None
     except Exception as e:
-        logging.error(f"Exception occurred: {e}", exc_info=True)
-        return f"❌ Exception: {e}"
+        print(f"Error fetching MP3 URL: {e}")
+        return None
+
         #return info.get("stream_url")
 
 
