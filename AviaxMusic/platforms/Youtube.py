@@ -27,6 +27,7 @@ async def shell_cmd(cmd):
             return errorz.decode("utf-8")
     return out.decode("utf-8")
 
+
 API_BASE = "https://nottyboyapii.jaydipmore28.workers.dev/youtube"
 API_KEY = "komal"
 
@@ -42,6 +43,7 @@ async def get_stream_url(video_id: str) -> str | None:
     """
     Fetch MP3 URL from API using YouTube video ID.
     Logs API request, response, and errors.
+    Returns a URL directly usable with PyTgCalls AudioPiped.
     """
     url = f"https://youtu.be/{video_id}"
     params = {"url": url, "apikey": API_KEY}
@@ -50,10 +52,11 @@ async def get_stream_url(video_id: str) -> str | None:
 
     try:
         async with httpx.AsyncClient(timeout=60) as client:
-            resp = await client.get(API_BASE, params=params)
-            resp.raise_for_status()
-            data = resp.json()
+            response = await client.get(API_BASE, params=params)
+            response.raise_for_status()
+            data = response.json()
 
+            # Log the full API response
             logger.debug(f"API response: {data}")
 
             if data.get("status") != "success":
@@ -61,12 +64,16 @@ async def get_stream_url(video_id: str) -> str | None:
                 return None
 
             mp3_url = data.get("mp3")
-            if mp3_url and mp3_url.startswith("http"):
-                logger.info(f"MP3 URL fetched successfully for video_id={video_id}")
-                return mp3_url
+            if not mp3_url:
+                logger.warning(f"No MP3 URL found in API response for video_id={video_id}")
+                return None
 
-            logger.warning(f"MP3 URL not found in API response for video_id={video_id}")
-            return None
+            if not mp3_url.startswith("http"):
+                logger.warning(f"Invalid MP3 URL received: {mp3_url}")
+                return None
+
+            logger.info(f"MP3 URL ready for streaming: {mp3_url}")
+            return mp3_url
 
     except (httpx.RequestError, httpx.HTTPStatusError, ValueError) as e:
         logger.error(f"Error fetching MP3 URL for video_id={video_id}: {e}")
@@ -144,7 +151,7 @@ class YouTubeAPI:
             link = self.base + link
         if "&" in link:
             link = link.split("&")[0]
-        results = VideosSearch(link, limit=1)
+        results = VideosSearch(link, limit=1)y
         for result in (await results.next())["result"]:
             duration = result["duration"]
         return duration
