@@ -25,7 +25,7 @@ logging.basicConfig(
 )
 
 API_URL = "https://nottyboyapii.jaydipmore28.workers.dev/youtube"
-API_KEY = "Nottyboy"
+API_KEY = "Nottybocccvvvvy"
 
 def cookie_txt_file():
     folder_path = f"{os.getcwd()}/cookies"
@@ -454,3 +454,4 @@ class YouTubeAPI:
             direct = True
             downloaded_file = await loop.run_in_executor(None, audio_dl)
         return downloaded_file, direct
+
