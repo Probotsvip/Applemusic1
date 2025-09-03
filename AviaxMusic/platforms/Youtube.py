@@ -21,13 +21,12 @@ logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
-# New API URLs
-AUDIO_API_URL = "https://jerrycoder.oggyapi.workers.dev/ytmp3"
-VIDEO_API_URL = "https://jerrycoder.oggyapi.workers.dev/ytmp4"
+API_URL = "https://nottyboyapii.jaydipmore28.workers.dev/youtube"
+API_KEY = "Nottyboy"
 
 async def get_stream_url(query: str, video: bool = False):
     """
-    Get YouTube stream URL using JerryCoder API.
+    Get YouTube stream URL (mp3/mp4) using Nottyboy API.
     query -> youtube link or video id
     video -> True for mp4, False for mp3
     """
@@ -35,18 +34,18 @@ async def get_stream_url(query: str, video: bool = False):
         # Agar user ne sirf video id diya hai toh usko link me convert karo
         if len(query) == 11 and "http" not in query:
             youtube_url = f"https://youtube.com/watch?v={query}"
+            logging.info(f"User ne Video ID diya: {query}")
+            logging.info(f"Converted to YouTube link: {youtube_url}")
         else:
             youtube_url = query
+            logging.info(f"User ne YouTube link diya: {youtube_url}")
 
-        # Choose API URL based on video parameter
-        api_url = VIDEO_API_URL if video else AUDIO_API_URL
-        
         # API request banao
-        params = {"url": youtube_url}
-        logging.info(f"Calling API: {api_url} with params: {params}")
+        params = {"url": youtube_url, "apikey": API_KEY}
+        logging.info(f"Calling API: {API_URL} with params: {params}")
 
         async with httpx.AsyncClient(timeout=60, verify=False) as client:
-            response = await client.get(api_url, params=params)
+            response = await client.get(API_URL, params=params)
 
         logging.info(f"API Response Status: {response.status_code}")
 
@@ -57,33 +56,68 @@ async def get_stream_url(query: str, video: bool = False):
         data = response.json()
         logging.info(f"API Response JSON: {data}")
 
-        # Extract stream URL from response
-        if video:
-            # For video: data['result']['url']
-            if data.get('status') and data.get('result', {}).get('url'):
-                stream_url = data['result']['url']
-            else:
-                stream_url = ""
-        else:
-            # For audio: data['url'] 
-            if data.get('status') and data.get('url'):
-                stream_url = data['url']
-            else:
-                stream_url = ""
+        # mp3 ya mp4 url choose karo
+        stream_url = data.get("mp4") if video else data.get("mp3")
 
         if not stream_url:
             logging.warning("Stream URL not found in response!")
             return ""
 
-        logging.info(f"Final Stream URL: {stream_url[:100]}...")
+        logging.info(f"Final Stream URL: {stream_url[:100]}...")  # safe print
         return stream_url
 
     except Exception as e:
         logging.exception(f"Exception in get_stream_url: {str(e)}")
         return ""
 
-# Baaki sab functions same rahenge...
-# check_file_size, shell_cmd, etc. (cookies removed wale)
+async def check_file_size(link):
+    async def get_format_info(link):
+        proc = await asyncio.create_subprocess_exec(
+            "yt-dlp",
+            "-J",
+            link,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
+        )
+        stdout, stderr = await proc.communicate()
+        if proc.returncode != 0:
+            print(f'Error:\n{stderr.decode()}')
+            return None
+        return json.loads(stdout.decode())
+
+    def parse_size(formats):
+        total_size = 0
+        for format in formats:
+            if 'filesize' in format:
+                total_size += format['filesize']
+        return total_size
+
+    info = await get_format_info(link)
+    if info is None:
+        return None
+    
+    formats = info.get('formats', [])
+    if not formats:
+        print("No formats found.")
+        return None
+    
+    total_size = parse_size(formats)
+    return total_size
+
+async def shell_cmd(cmd):
+    proc = await asyncio.create_subprocess_shell(
+        cmd,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+    )
+    out, errorz = await proc.communicate()
+    if errorz:
+        if "unavailable videos are hidden" in (errorz.decode("utf-8")).lower():
+            return out.decode("utf-8")
+        else:
+            return errorz.decode("utf-8")
+    return out.decode("utf-8")
+
 
 class YouTubeAPI:
     def __init__(self):
@@ -93,7 +127,84 @@ class YouTubeAPI:
         self.listbase = "https://youtube.com/playlist?list="
         self.reg = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
 
-    # ... other methods same ...
+    async def exists(self, link: str, videoid: Union[bool, str] = None):
+        if videoid:
+            link = self.base + link
+        if re.search(self.regex, link):
+            return True
+        else:
+            return False
+
+    async def url(self, message_1: Message) -> Union[str, None]:
+        messages = [message_1]
+        if message_1.reply_to_message:
+            messages.append(message_1.reply_to_message)
+        text = ""
+        offset = None
+        length = None
+        for message in messages:
+            if offset:
+                break
+            if message.entities:
+                for entity in message.entities:
+                    if entity.type == MessageEntityType.URL:
+                        text = message.text or message.caption
+                        offset, length = entity.offset, entity.length
+                        break
+            elif message.caption_entities:
+                for entity in message.caption_entities:
+                    if entity.type == MessageEntityType.TEXT_LINK:
+                        return entity.url
+        if offset in (None,):
+            return None
+        return text[offset : offset + length]
+
+    async def details(self, link: str, videoid: Union[bool, str] = None):
+        if videoid:
+            link = self.base + link
+        if "&" in link:
+            link = link.split("&")[0]
+        results = VideosSearch(link, limit=1)
+        for result in (await results.next())["result"]:
+            title = result["title"]
+            duration_min = result["duration"]
+            thumbnail = result["thumbnails"][0]["url"].split("?")[0]
+            vidid = result["id"]
+            if str(duration_min) == "None":
+                duration_sec = 0
+            else:
+                duration_sec = int(time_to_seconds(duration_min))
+        return title, duration_min, duration_sec, thumbnail, vidid
+
+    async def title(self, link: str, videoid: Union[bool, str] = None):
+        if videoid:
+            link = self.base + link
+        if "&" in link:
+            link = link.split("&")[0]
+        results = VideosSearch(link, limit=1)
+        for result in (await results.next())["result"]:
+            title = result["title"]
+        return title
+
+    async def duration(self, link: str, videoid: Union[bool, str] = None):
+        if videoid:
+            link = self.base + link
+        if "&" in link:
+            link = link.split("&")[0]
+        results = VideosSearch(link, limit=1)
+        for result in (await results.next())["result"]:
+            duration = result["duration"]
+        return duration
+
+    async def thumbnail(self, link: str, videoid: Union[bool, str] = None):
+        if videoid:
+            link = self.base + link
+        if "&" in link:
+            link = link.split("&")[0]
+        results = VideosSearch(link, limit=1)
+        for result in (await results.next())["result"]:
+            thumbnail = result["thumbnails"][0]["url"].split("?")[0]
+        return thumbnail
 
     async def video(self, link: str, videoid: Union[bool, str] = None, video: bool = False):
         if videoid:
@@ -101,11 +212,9 @@ class YouTubeAPI:
         if "&" in link:
             link = link.split("&")[0]
         
-        # NAYA API USE KARO
+        # VIDEO PARAMETER USE KARO - audio/video ke liye
         stream_url = await get_stream_url(link, video=video)
         return (1, stream_url) if stream_url else (0, "API Error: Stream URL not found")
-
-    # ... baaki methods same ...
 
     async def playlist(self, link, limit, user_id, videoid: Union[bool, str] = None):
         if videoid:
@@ -325,4 +434,3 @@ class YouTubeAPI:
                 downloaded_file = await loop.run_in_executor(None, audio_dl)
         
         return downloaded_file, direct
-
