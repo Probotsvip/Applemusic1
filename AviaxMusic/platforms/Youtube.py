@@ -4,6 +4,7 @@ import re
 import json
 from typing import Union
 
+import httpx
 import yt_dlp
 from pyrogram.enums import MessageEntityType
 from pyrogram.types import Message
@@ -12,13 +13,19 @@ from youtubesearchpython.__future__ import VideosSearch
 from AviaxMusic.utils.database import is_on_off
 from AviaxMusic.utils.formatters import time_to_seconds
 
-
-
 import os
 import glob
 import random
 import logging
-import httpx
+
+# Logging setup
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
+
+API_URL = "https://nottyboyapii.jaydipmore28.workers.dev/youtube"
+API_KEY = "Nottyboy"
 
 def cookie_txt_file():
     folder_path = f"{os.getcwd()}/cookies"
@@ -30,17 +37,6 @@ def cookie_txt_file():
     with open(filename, 'a') as file:
         file.write(f'Choosen File : {cookie_txt_file}\n')
     return f"""cookies/{str(cookie_txt_file).split("/")[-1]}"""
-    
-    # Logging setup
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s"
-)
-
-API_URL = "https://nottyboyapii.jaydipmore28.workers.dev/youtube"
-API_KEY = "Nottyboy"
-
-
 
 async def get_stream_url(query: str, video: bool = False):
     """
@@ -87,8 +83,6 @@ async def get_stream_url(query: str, video: bool = False):
     except Exception as e:
         logging.exception(f"Exception in get_stream_url: {str(e)}")
         return ""
-
-
 
 async def check_file_size(link):
     async def get_format_info(link):
@@ -138,65 +132,6 @@ async def shell_cmd(cmd):
         else:
             return errorz.decode("utf-8")
     return out.decode("utf-8")
-
-#yha mere function add 
-
-# Logging setup
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s"
-)
-
-API_URL = "https://nottyboyapii.jaydipmore28.workers.dev/youtube"
-API_KEY = "Nottyboy"
-
-
-
-async def get_stream_url(query: str, video: bool = False):
-    """
-    Get YouTube stream URL (mp3/mp4) using Nottyboy API.
-    query -> youtube link or video id
-    video -> True for mp4, False for mp3
-    """
-    try:
-        # Agar user ne sirf video id diya hai toh usko link me convert karo
-        if len(query) == 11 and "http" not in query:
-            youtube_url = f"https://youtube.com/watch?v={query}"
-            logging.info(f"User ne Video ID diya: {query}")
-            logging.info(f"Converted to YouTube link: {youtube_url}")
-        else:
-            youtube_url = query
-            logging.info(f"User ne YouTube link diya: {youtube_url}")
-
-        # API request banao
-        params = {"url": youtube_url, "apikey": API_KEY}
-        logging.info(f"Calling API: {API_URL} with params: {params}")
-
-        async with httpx.AsyncClient(timeout=60, verify=False) as client:
-            response = await client.get(API_URL, params=params)
-
-        logging.info(f"API Response Status: {response.status_code}")
-
-        if response.status_code != 200:
-            logging.error(f"API Error: {response.text}")
-            return ""
-
-        data = response.json()
-        logging.info(f"API Response JSON: {data}")
-
-        # mp3 ya mp4 url choose karo
-        stream_url = data.get("mp4") if video else data.get("mp3")
-
-        if not stream_url:
-            logging.warning("Stream URL not found in response!")
-            return ""
-
-        logging.info(f"Final Stream URL: {stream_url[:100]}...")  # safe print
-        return stream_url
-
-    except Exception as e:
-        logging.exception(f"Exception in get_stream_url: {str(e)}")
-        return ""
 
 
 class YouTubeAPI:
@@ -287,14 +222,14 @@ class YouTubeAPI:
         return thumbnail
 
     async def video(self, link: str, videoid: Union[bool, str] = None):
-    if videoid:
-        link = self.base + link
-    if "&" in link:
-        link = link.split("&")[0]
-    
-    # Ek hi line mein sab kuch
-    stream_url = await get_stream_url(link, video=True)
-    return (1, stream_url) if stream_url else (0, "API Error: Stream URL not found")
+        if videoid:
+            link = self.base + link
+        if "&" in link:
+            link = link.split("&")[0]
+        
+        # SIRF TUMHARA API USE KARO - NO FALLBACK
+        stream_url = await get_stream_url(link, video=True)
+        return (1, stream_url) if stream_url else (0, "API Error: Stream URL not found")
 
     async def playlist(self, link, limit, user_id, videoid: Union[bool, str] = None):
         if videoid:
