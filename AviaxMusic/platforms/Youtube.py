@@ -13,9 +13,6 @@ from youtubesearchpython.__future__ import VideosSearch
 from AviaxMusic.utils.database import is_on_off
 from AviaxMusic.utils.formatters import time_to_seconds
 
-import os
-import glob
-import random
 import logging
 
 # Logging setup
@@ -25,18 +22,7 @@ logging.basicConfig(
 )
 
 API_URL = "https://nottyboyapii.jaydipmore28.workers.dev/youtube"
-API_KEY = "Nottybocccvvvvy"
-
-def cookie_txt_file():
-    folder_path = f"{os.getcwd()}/cookies"
-    filename = f"{os.getcwd()}/cookies/logs.csv"
-    txt_files = glob.glob(os.path.join(folder_path, '*.txt'))
-    if not txt_files:
-        raise FileNotFoundError("No .txt files found in the specified folder.")
-    cookie_txt_file = random.choice(txt_files)
-    with open(filename, 'a') as file:
-        file.write(f'Choosen File : {cookie_txt_file}\n')
-    return f"""cookies/{str(cookie_txt_file).split("/")[-1]}"""
+API_KEY = "Nottyboy"
 
 async def get_stream_url(query: str, video: bool = False):
     """
@@ -88,7 +74,6 @@ async def check_file_size(link):
     async def get_format_info(link):
         proc = await asyncio.create_subprocess_exec(
             "yt-dlp",
-            "--cookies", cookie_txt_file(),
             "-J",
             link,
             stdout=asyncio.subprocess.PIPE,
@@ -221,14 +206,14 @@ class YouTubeAPI:
             thumbnail = result["thumbnails"][0]["url"].split("?")[0]
         return thumbnail
 
-    async def video(self, link: str, videoid: Union[bool, str] = None):
+    async def video(self, link: str, videoid: Union[bool, str] = None, video: bool = False):
         if videoid:
             link = self.base + link
         if "&" in link:
             link = link.split("&")[0]
         
-        # SIRF TUMHARA API USE KARO - NO FALLBACK
-        stream_url = await get_stream_url(link, video=True)
+        # VIDEO PARAMETER USE KARO - audio/video ke liye
+        stream_url = await get_stream_url(link, video=video)
         return (1, stream_url) if stream_url else (0, "API Error: Stream URL not found")
 
     async def playlist(self, link, limit, user_id, videoid: Union[bool, str] = None):
@@ -237,7 +222,7 @@ class YouTubeAPI:
         if "&" in link:
             link = link.split("&")[0]
         playlist = await shell_cmd(
-            f"yt-dlp -i --get-id --flat-playlist --cookies {cookie_txt_file()} --playlist-end {limit} --skip-download {link}"
+            f"yt-dlp -i --get-id --flat-playlist --playlist-end {limit} --skip-download {link}"
         )
         try:
             result = playlist.split("\n")
@@ -274,7 +259,7 @@ class YouTubeAPI:
             link = self.base + link
         if "&" in link:
             link = link.split("&")[0]
-        ytdl_opts = {"quiet": True, "cookiefile" : cookie_txt_file()}
+        ytdl_opts = {"quiet": True}
         ydl = yt_dlp.YoutubeDL(ytdl_opts)
         with ydl:
             formats_available = []
@@ -337,6 +322,7 @@ class YouTubeAPI:
         if videoid:
             link = self.base + link
         loop = asyncio.get_running_loop()
+        
         def audio_dl():
             ydl_optssx = {
                 "format": "bestaudio/best",
@@ -344,7 +330,6 @@ class YouTubeAPI:
                 "geo_bypass": True,
                 "nocheckcertificate": True,
                 "quiet": True,
-                "cookiefile" : cookie_txt_file(),
                 "no_warnings": True,
             }
             x = yt_dlp.YoutubeDL(ydl_optssx)
@@ -362,7 +347,6 @@ class YouTubeAPI:
                 "geo_bypass": True,
                 "nocheckcertificate": True,
                 "quiet": True,
-                "cookiefile" : cookie_txt_file(),
                 "no_warnings": True,
             }
             x = yt_dlp.YoutubeDL(ydl_optssx)
@@ -383,7 +367,6 @@ class YouTubeAPI:
                 "nocheckcertificate": True,
                 "quiet": True,
                 "no_warnings": True,
-                "cookiefile" : cookie_txt_file(),
                 "prefer_ffmpeg": True,
                 "merge_output_format": "mp4",
             }
@@ -399,7 +382,6 @@ class YouTubeAPI:
                 "nocheckcertificate": True,
                 "quiet": True,
                 "no_warnings": True,
-                "cookiefile" : cookie_txt_file(),
                 "prefer_ffmpeg": True,
                 "postprocessors": [
                     {
@@ -415,43 +397,40 @@ class YouTubeAPI:
         if songvideo:
             await loop.run_in_executor(None, song_video_dl)
             fpath = f"downloads/{title}.mp4"
-            return fpath
+            return fpath, True
         elif songaudio:
             await loop.run_in_executor(None, song_audio_dl)
             fpath = f"downloads/{title}.mp3"
-            return fpath
+            return fpath, True
         elif video:
             if await is_on_off(1):
                 direct = True
                 downloaded_file = await loop.run_in_executor(None, video_dl)
             else:
-                proc = await asyncio.create_subprocess_exec(
-                    "yt-dlp",
-                    "--cookies",cookie_txt_file(),
-                    "-g",
-                    "-f",
-                    "best[height<=?720][width<=?1280]",
-                    f"{link}",
-                    stdout=asyncio.subprocess.PIPE,
-                    stderr=asyncio.subprocess.PIPE,
-                )
-                stdout, stderr = await proc.communicate()
-                if stdout:
-                    downloaded_file = stdout.decode().split("\n")[0]
-                    direct = False
+                # API se stream URL try karo pehle
+                stream_url = await get_stream_url(link, video=True)
+                if stream_url:
+                    return stream_url, False
                 else:
-                   file_size = await check_file_size(link)
-                   if not file_size:
-                     print("None file Size")
-                     return
-                   total_size_mb = file_size / (1024 * 1024)
-                   if total_size_mb > 250:
-                     print(f"File size {total_size_mb:.2f} MB exceeds the 100MB limit.")
-                     return None
-                   direct = True
-                   downloaded_file = await loop.run_in_executor(None, video_dl)
+                    # Fallback to download
+                    file_size = await check_file_size(link)
+                    if not file_size:
+                        print("None file Size")
+                        return None, True
+                    total_size_mb = file_size / (1024 * 1024)
+                    if total_size_mb > 250:
+                        print(f"File size {total_size_mb:.2f} MB exceeds the 100MB limit.")
+                        return None, True
+                    direct = True
+                    downloaded_file = await loop.run_in_executor(None, video_dl)
         else:
-            direct = True
-            downloaded_file = await loop.run_in_executor(None, audio_dl)
+            # Audio ke liye bhi API try karo pehle
+            stream_url = await get_stream_url(link, video=False)
+            if stream_url:
+                return stream_url, False
+            else:
+                # Fallback to download
+                direct = True
+                downloaded_file = await loop.run_in_executor(None, audio_dl)
+        
         return downloaded_file, direct
-
