@@ -21,12 +21,13 @@ logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
-API_URL = "https://nottyboyapii.jaydipmore28.workers.dev/youtube"
-API_KEY = "Nottyboy"
+# JerryCoder API URLs
+AUDIO_API_URL = "https://jerrycoder.oggyapi.workers.dev/ytmp3"
+VIDEO_API_URL = "https://jerrycoder.oggyapi.workers.dev/ytmp4"
 
 async def get_stream_url(query: str, video: bool = False):
     """
-    Get YouTube stream URL (mp3/mp4) using Nottyboy API.
+    Get YouTube stream URL using JerryCoder API.
     query -> youtube link or video id
     video -> True for mp4, False for mp3
     """
@@ -34,18 +35,20 @@ async def get_stream_url(query: str, video: bool = False):
         # Agar user ne sirf video id diya hai toh usko link me convert karo
         if len(query) == 11 and "http" not in query:
             youtube_url = f"https://youtube.com/watch?v={query}"
-            logging.info(f"User ne Video ID diya: {query}")
-            logging.info(f"Converted to YouTube link: {youtube_url}")
+            logging.info(f"Converted Video ID to YouTube link: {youtube_url}")
         else:
             youtube_url = query
-            logging.info(f"User ne YouTube link diya: {youtube_url}")
+            logging.info(f"Using YouTube link: {youtube_url}")
 
-        # API request banao
-        params = {"url": youtube_url, "apikey": API_KEY}
-        logging.info(f"Calling API: {API_URL} with params: {params}")
+        # Choose appropriate API endpoint
+        api_url = VIDEO_API_URL if video else AUDIO_API_URL
+        params = {"url": youtube_url}
+        
+        logging.info(f"Calling JerryCoder API: {api_url}")
+        logging.info(f"Params: {params}")
 
-        async with httpx.AsyncClient(timeout=60, verify=False) as client:
-            response = await client.get(API_URL, params=params)
+        async with httpx.AsyncClient(timeout=30, verify=False) as client:
+            response = await client.get(api_url, params=params)
 
         logging.info(f"API Response Status: {response.status_code}")
 
@@ -54,21 +57,61 @@ async def get_stream_url(query: str, video: bool = False):
             return ""
 
         data = response.json()
-        logging.info(f"API Response JSON: {data}")
+        logging.info(f"API Response: {json.dumps(data, indent=2)}")
 
-        # mp3 ya mp4 url choose karo
-        stream_url = data.get("mp4") if video else data.get("mp3")
+        # Extract stream URL based on API response structure
+        if video:
+            # For video API
+            if data.get("status") and data.get("result"):
+                stream_url = data["result"].get("url", "")
+            else:
+                stream_url = ""
+        else:
+            # For audio API
+            if data.get("status"):
+                stream_url = data.get("url", "")
+            else:
+                stream_url = ""
 
         if not stream_url:
-            logging.warning("Stream URL not found in response!")
-            return ""
+            logging.warning("Stream URL not found in API response!")
+            # Fallback to direct yt-dlp
+            return await get_stream_url_ytdlp(query, video)
 
-        logging.info(f"Final Stream URL: {stream_url[:100]}...")  # safe print
+        logging.info(f"Final Stream URL: {stream_url[:100]}...")
         return stream_url
 
     except Exception as e:
         logging.exception(f"Exception in get_stream_url: {str(e)}")
+        # Fallback to yt-dlp
+        return await get_stream_url_ytdlp(query, video)
+
+async def get_stream_url_ytdlp(query: str, video: bool = False):
+    """Fallback to yt-dlp if API fails"""
+    try:
+        format_select = 'bestvideo[height<=720]+bestaudio/best' if video else 'bestaudio/best'
+        
+        ydl_opts = {
+            'format': format_select,
+            'quiet': True,
+            'no_warnings': True,
+            'geo_bypass': True,
+        }
+        
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(query, download=False)
+            stream_url = info.get('url', '')
+            
+            logging.info(f"YT-DLP Fallback URL: {stream_url[:100]}...")
+            return stream_url
+            
+    except Exception as e:
+        logging.error(f"YT-DLP Fallback also failed: {str(e)}")
         return ""
+
+# Baaki sab code same rahega...
+# YouTubeAPI class aur baaki functions wohi rahenge
+# Bas get_stream_url function update ho gaya hai
 
 async def check_file_size(link):
     async def get_format_info(link):
@@ -434,3 +477,4 @@ class YouTubeAPI:
                 downloaded_file = await loop.run_in_executor(None, audio_dl)
         
         return downloaded_file, direct
+
