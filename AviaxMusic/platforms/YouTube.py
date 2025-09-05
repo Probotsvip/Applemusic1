@@ -13,7 +13,6 @@ from youtubesearchpython.__future__ import VideosSearch
 from AviaxMusic.utils.database import is_on_off
 from AviaxMusic.utils.formatters import time_to_seconds
 import logging
-import httpx
 
 # Logging setup
 logging.basicConfig(
@@ -43,18 +42,23 @@ async def get_stream_url(query: str, video: bool = False):
         }
         
         logging.info(f"Calling Tera API: {api_url}")
-        logging.info(f"With query: {query}")
+        logging.info(f"With query: {query}, video: {video}")
 
         async with httpx.AsyncClient(timeout=30) as client:
             response = await client.get(api_url, params=params)
 
         logging.info(f"API Response Status: {response.status_code}")
+        logging.info(f"API Response Text: {response.text[:200]}...")
 
         if response.status_code == 200:
             # Direct URL return kardo
             stream_url = response.text.strip()
-            logging.info(f"Final Stream URL: {stream_url[:100]}...")
-            return stream_url
+            if stream_url:
+                logging.info(f"Final Stream URL: {stream_url[:100]}...")
+                return stream_url
+            else:
+                logging.warning("Empty response from API")
+                return ""
         else:
             logging.error(f"API Error: {response.text}")
             return ""
@@ -62,10 +66,6 @@ async def get_stream_url(query: str, video: bool = False):
     except Exception as e:
         logging.error(f"Error in get_stream_url: {str(e)}")
         return ""
-
-# Baaki sab code same rahega...
-# YouTubeAPI class aur baaki functions wohi rahenge
-# Bas get_stream_url function update ho gaya hai
 
 async def check_file_size(link):
     async def get_format_info(link):
@@ -320,6 +320,23 @@ class YouTubeAPI:
             link = self.base + link
         loop = asyncio.get_running_loop()
         
+        # Pehle API se stream URL try karo (both audio and video ke liye)
+        if not songvideo and not songaudio:
+            try:
+                # VIDEO PARAMETER SAHI USE KARO - bool() se convert karo
+                is_video = bool(video)
+                logging.info(f"API call kar raha hai, video: {is_video}, link: {link}")
+                
+                stream_url = await get_stream_url(link, video=is_video)
+                if stream_url and stream_url.strip():
+                    logging.info(f"API se stream URL mil gaya: {stream_url[:100]}...")
+                    return stream_url, False  # False means direct stream (not downloaded file)
+                else:
+                    logging.warning("API se stream URL nahi mila")
+            except Exception as e:
+                logging.error(f"API call mein error: {str(e)}")
+        
+        # Agar API fail hua ya songvideo/songaudio hai toh yt-dlp use karo
         def audio_dl():
             ydl_optssx = {
                 "format": "bestaudio/best",
@@ -404,30 +421,20 @@ class YouTubeAPI:
                 direct = True
                 downloaded_file = await loop.run_in_executor(None, video_dl)
             else:
-                # API se stream URL try karo pehle
-                stream_url = await get_stream_url(link, video=True)
-                if stream_url:
-                    return stream_url, False
-                else:
-                    # Fallback to download
-                    file_size = await check_file_size(link)
-                    if not file_size:
-                        print("None file Size")
-                        return None, True
-                    total_size_mb = file_size / (1024 * 1024)
-                    if total_size_mb > 250:
-                        print(f"File size {total_size_mb:.2f} MB exceeds the 100MB limit.")
-                        return None, True
-                    direct = True
-                    downloaded_file = await loop.run_in_executor(None, video_dl)
-        else:
-            # Audio ke liye bhi API try karo pehle
-            stream_url = await get_stream_url(link, video=False)
-            if stream_url:
-                return stream_url, False
-            else:
                 # Fallback to download
+                file_size = await check_file_size(link)
+                if not file_size:
+                    print("None file Size")
+                    return None, True
+                total_size_mb = file_size / (1024 * 1024)
+                if total_size_mb > 250:
+                    print(f"File size {total_size_mb:.2f} MB exceeds the 100MB limit.")
+                    return None, True
                 direct = True
-                downloaded_file = await loop.run_in_executor(None, audio_dl)
+                downloaded_file = await loop.run_in_executor(None, video_dl)
+        else:
+            # Fallback to download
+            direct = True
+            downloaded_file = await loop.run_in_executor(None, audio_dl)
         
         return downloaded_file, direct
