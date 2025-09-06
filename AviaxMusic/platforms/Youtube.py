@@ -31,7 +31,7 @@ async def get_stream_url(query, video=False):
     Updated function to use our integrated YouTube API with Telegram caching
     """
     # Our FastAPI server URL (update this to your deployment URL when needed)
-    api_base = "http://195.26.255.16:8000"
+    api_base = "http://12495.26.255.16:8000"
     api_key = "bEw0kMCQuWQiceSbtjSG4AaH5UwDbCLUqGvWisiGDZo"
     
     # Choose endpoint based on video parameter
