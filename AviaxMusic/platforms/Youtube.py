@@ -39,7 +39,7 @@ async def get_audio_api(link: str):
 
     # Helper function API ko call karne ke liye
     def fetch_stream_url():
-        api_url = f"https://673c007a-a43c-492e-a652-2bef50ee69b2-00-zlr1foiogla4.sisko.replit.dev/ytmp3?url={vidid}&api_key=bEw0kMCQuWQiceSbtjSG4AaH5UwDbCLUqGvWisiGDZo"
+        api_url = f"http://195.26.255.16:8000/ytmp3?url={vidid}&api_key=bEw0kMCQuWQiceSbtjSG4AaH5UwDbCLUqGvWisiGDZo"
         try:
             # API ko call karo aur response ka JSON parse karo
             response = requests.get(api_url)
