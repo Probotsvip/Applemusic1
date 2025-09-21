@@ -26,7 +26,7 @@ async def shell_cmd(cmd):
     return out.decode("utf-8")
 
 
-cookies_file = "SHUKLAMUSIC/assets/cookies.txt"
+cookies_file = "AviaxMusic/cookies/cookies.txt"
 
 class YouTubeAPI:
     def __init__(self):
@@ -352,3 +352,4 @@ class YouTubeAPI:
             downloaded_file = await loop.run_in_executor(None, audio_dl)
 
         return downloaded_file, direct
+
